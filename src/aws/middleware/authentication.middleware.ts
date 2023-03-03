@@ -14,7 +14,8 @@ export class AuthenticationMiddleware implements NestMiddleware {
     console.log("Authentication middleware.ts callback is here"); 
     // const authHeader = req.headers['authorization'];
     // if (!authHeader) return next();
-    const token = "50a7d025-a94b-4f8d-b63a-c5e8932d1ce8"; 
+    //Testing stuff 
+    const token = ""; 
 
     // const token = authHeader.split(' ')[1]; // get part of string after space
     // if (!token) return next();

@@ -29,7 +29,7 @@ export class CognitoWrapper {
     console.log("Trying some login shit"); 
     const verifier = CognitoJwtVerifier.create({
       userPoolId: process.env.AWS_USER_POOL_ID,  
-      tokenUse: "access",
+      tokenUse: "access", 
       clientId:process.env.AWS_ACCESS_KEY, 
     }); 
 

@@ -12,13 +12,12 @@ export class AuthenticationMiddleware implements NestMiddleware {
 
   async use(req: any, res: any, next: () => void) {
     console.log("Authentication middleware.ts callback is here"); 
-    // const authHeader = req.headers['authorization'];
-    // if (!authHeader) return next();
-    //Testing stuff 
-    const token = ""; 
-
-    // const token = authHeader.split(' ')[1]; // get part of string after space
-    // if (!token) return next();
+    
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) return next();
+    
+    const token = authHeader.split(' ')[1]; // get part of string after space
+    if (!token) return next();
     try {
       const user = await this.authService.verifyJwt(token);
       req.user = user;

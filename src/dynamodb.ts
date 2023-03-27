@@ -17,35 +17,18 @@ console.log('secret', process.env.AWS_SECRET_ACCESS_KEY!);
 
 const client = new DynamoDB({ region: 'us-east-2' });
 
+export async function UserTimesheets(uuid:string): Promise<TimeSheetSchema[]> {
+  /*
+    Returns the timesheets corresponding to a given UUID 
+    @param uuid: The UUID of the user we are looking for 
+    :returns: A promise of the list of timesheets for a given uuid 
+  */
 
-// TODO: Write persitence level test using local DB
-// This is kind of a pain, and a "slow" test so we elide it
-export async function SelectAllFromHourTable(): Promise<TimeSheetSchema[]> {
-  const command = new ScanCommand({
-    TableName: 'BreaktimeTimesheetTable',
-    
-  });
-  const dynamoRawResult = await client.send(command);
-  if (dynamoRawResult == null || dynamoRawResult.Items == null) {
-    throw new Error('Invalid response from DynamoDB, got undefined/null');
-  }
-  const unmarshalledItems = dynamoRawResult.Items.map((i) => unmarshall(i));
-
-  const timesheetData = unmarshalledItems.map((i) =>
-   TimeSheetSchema.parse(i)
-  );
-  return unmarshalledItems;
-}
-
-export async function UserTimesheets(uuid:number): Promise<TimeSheetSchema[]> {
   const command = new QueryCommand({
-    TableName: 'BreaktimeTimesheetTable',
-    KeyConditionExpression: "#UserID = :s", 
+    TableName: 'BreaktimeTimesheets',
+    KeyConditionExpression: "UserID = :s", 
     ExpressionAttributeValues: {
-      ":s": { N: "1293219" }}, 
-    ExpressionAttributeNames: {
-      "#UserID":"TimesheetID"
-    }  
+      ":s": { S: `${uuid}` }}, 
   });
   const dynamoRawResult = await client.send(command);
 
@@ -53,7 +36,6 @@ export async function UserTimesheets(uuid:number): Promise<TimeSheetSchema[]> {
     throw new Error('Invalid response from DynamoDB, got undefined/null');
   }
   const unmarshalledItems = dynamoRawResult.Items.map((i) => unmarshall(i));
-
   const timesheetData = unmarshalledItems.map((i) =>
    TimeSheetSchema.parse(i)
   );
@@ -62,7 +44,7 @@ export async function UserTimesheets(uuid:number): Promise<TimeSheetSchema[]> {
 
 export async function WriteEntryToTable(table:TimeSheetSchema): Promise<Boolean> {
   const params = {
-    TableName: 'BreaktimeTimesheetTable',
+    TableName: 'BreaktimeTimesheets',
     Item: marshall(table)
   }; 
   

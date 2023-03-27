@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const TimeSheetSchema = z.object({
   TimesheetID: z.number(), 
-  UUID: z.number(), 
+  UserID: z.string(), 
   StartDate: z.number(),
   Status: z.string(),
   Company: z.string(), 

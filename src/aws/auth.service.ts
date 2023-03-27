@@ -14,11 +14,6 @@ export class AuthService {
   async verifyJwt(jwt: string): Promise<Boolean> {
     try {
       const userPayload = await this.cognitoService.validate(jwt);
-      // if (!userPayload || !userPayload.email) throw new NotFoundException();
-      // // const user = await this.userRepository.findOneOrFail({
-      // //   email: userPayload.email,
-      // // });
-      // return user;
     
       return true; 
     } catch (e) {

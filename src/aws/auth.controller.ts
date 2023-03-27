@@ -27,21 +27,9 @@ export class AuthController {
     const userId = await TokenClient.grabUserID(headers); 
     if (userId) {
       console.log("Writing")
-
       WriteEntryToTable(body.timesheet); 
-
-      // console.log("Fetching timesheets for user ", userId); 
-      // const timesheets = await UserTimesheets(userId)
-      // return timesheets; 
     }
-    // WriteEntryToTable({
-    //   TimesheetID:1293219, 
-    //   UserID:"1896731b-3126-4678-86cb-ef199330b3ed", 
-    //   StartDate:1679918400,  
-    //   Status:"Accepted", 
-    //   Company:"Breaktime",
-    //   TableData:"{}"
-    // }); 
+
     return "Success!"  
   }
   @Get('timesheet')

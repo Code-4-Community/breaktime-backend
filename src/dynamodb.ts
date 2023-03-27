@@ -48,6 +48,14 @@ export async function WriteEntryToTable(table:TimeSheetSchema): Promise<Boolean>
     Item: marshall(table)
   }; 
   
+  try {
+    //Input validation - if this fails we do not upload following this
+    TimeSheetSchema.parse(table); 
+  } catch (error) {
+    console.log("Table failed to parse: ", error); 
+    return false; 
+  }
+  
   client.putItem(params, function(err, data) {
     if (err) {
       console.log("Error", err);

@@ -18,12 +18,6 @@ console.log('secret', process.env.AWS_SECRET_ACCESS_KEY!);
 const client = new DynamoDB({ region: 'us-east-2' });
 
 export async function UserTimesheets(uuid:string): Promise<TimeSheetSchema[]> {
-  /*
-    Returns the timesheets corresponding to a given UUID 
-    @param uuid: The UUID of the user we are looking for 
-    :returns: A promise of the list of timesheets for a given uuid 
-  */
-
   const command = new QueryCommand({
     TableName: 'BreaktimeTimesheets',
     KeyConditionExpression: "UserID = :s", 

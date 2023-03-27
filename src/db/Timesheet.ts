@@ -6,7 +6,7 @@ export const TimeSheetSchema = z.object({
   StartDate: z.number(),
   Status: z.string(),
   Company: z.string(), 
-  TableData: z.string(), 
+  TableData: z.array(z.any()), 
 })
 
 export type TimeSheetSchema = z.infer<typeof TimeSheetSchema>

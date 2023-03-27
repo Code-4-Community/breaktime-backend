@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Headers , Body} from '@nestjs/common';
 // import { ApiTags } from '@nestjs/swagger';
 // import { Role } from '../user/types/role';
 // import { User } from '../user/types/user.entity';
@@ -23,28 +23,35 @@ export class AuthController {
     return "Auth endpoint was served "; 
   }
   @Post('timesheet')
-  upload_timesheet(): String {
-    WriteEntryToTable({
-      TimesheetID:1293219, 
-      UserID:"1896731b-3126-4678-86cb-ef199330b3ed", 
-      StartDate:1679918400,  
-      Status:"Accepted", 
-      Company:"Breaktime",
-      TableData:"{}"
-    }); 
+  public async upload_timesheet(@Headers() headers: any, @Body() body: any): Promise<string> {
+    const userId = await TokenClient.grabUserID(headers); 
+    if (userId) {
+      console.log("Writing")
+
+      WriteEntryToTable(body.timesheet); 
+
+      // console.log("Fetching timesheets for user ", userId); 
+      // const timesheets = await UserTimesheets(userId)
+      // return timesheets; 
+    }
+    // WriteEntryToTable({
+    //   TimesheetID:1293219, 
+    //   UserID:"1896731b-3126-4678-86cb-ef199330b3ed", 
+    //   StartDate:1679918400,  
+    //   Status:"Accepted", 
+    //   Company:"Breaktime",
+    //   TableData:"{}"
+    // }); 
     return "Success!"  
   }
   @Get('timesheet')
   public async grab_timesheets(@Headers() headers: any): Promise<TimeSheetSchema[]> {
-    if (headers.hasOwnProperty('authorization')) {
-      const resp = await TokenClient.verifyJWT(headers.authorization); 
-      const UserID = resp.sub; 
-      
-      console.log("Fetching timesheets for user ", UserID); 
-      const timesheets = await UserTimesheets(UserID)
-      console.log(timesheets); 
+    const userId = await TokenClient.grabUserID(headers); 
+
+    if (userId) {
+      console.log("Fetching timesheets for user ", userId); 
+      const timesheets = await UserTimesheets(userId)
       return timesheets; 
-  
     }
     return []; 
   } 

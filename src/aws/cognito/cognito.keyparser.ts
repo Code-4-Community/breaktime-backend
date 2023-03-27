@@ -1,13 +1,5 @@
 import { CognitoJwtVerifier} from "aws-jwt-verify";
 
-
-// const verifier = CognitoJwtVerifier.create({
-//     userPoolId: process.env.AWS_USER_POOL_ID,  
-//     tokenUse: "access", 
-//     clientId:process.env.AWS_ACCESS_KEY, 
-//   }); 
-
-
 export class JWTVerifier {
     verifier = CognitoJwtVerifier.create({
     userPoolId: process.env.AWS_USER_POOL_ID,  
@@ -15,7 +7,16 @@ export class JWTVerifier {
     clientId:process.env.AWS_ACCESS_KEY, 
     }); 
 
-    public async verifyJWT (jwt: string) {
+
+    public async grabUserID (headers:any): Promise<string> {
+        if (headers.hasOwnProperty('authorization')) {
+            const resp = await this.verifyJWT(headers.authorization); 
+            return resp.sub; 
+        } 
+        return "" 
+    }
+
+    private async verifyJWT (jwt: string) {
         try{
             const token = jwt.split(' ')[1] 
             if (!token) {

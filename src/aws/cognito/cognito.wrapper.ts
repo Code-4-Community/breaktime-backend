@@ -16,18 +16,7 @@ export class CognitoWrapper {
     clientId:process.env.AWS_ACCESS_KEY, 
   }); 
  
-  // constructor() {   
-  
-    
-  // }
-
   async validate(jwt: string) {
-    // const verifier = CognitoJwtVerifier.create({
-    //   userPoolId: process.env.AWS_USER_POOL_ID,  
-    //   tokenUse: "access", 
-    //   clientId:process.env.AWS_ACCESS_KEY, 
-    // }); 
-
     try {
       const payload = await this.verifier.verify(jwt); 
       return payload 
@@ -37,3 +26,5 @@ export class CognitoWrapper {
     }
   }
 }
+
+

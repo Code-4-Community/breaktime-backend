@@ -49,7 +49,7 @@ export async function WriteEntryToTable(table:TimeSheetSchema): Promise<Boolean>
   }; 
   
   try {
-    //Input validation - if this fails we do not upload following this
+    //Input validation - if this fails we do not upload following this as it did not have appropriate types
     TimeSheetSchema.parse(table); 
   } catch (error) {
     console.log("Table failed to parse: ", error); 

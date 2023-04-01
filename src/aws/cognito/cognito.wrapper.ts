@@ -10,33 +10,15 @@ const u_pool:string = process.env.AWS_USER_POOL_ID;
 dotenv.config();
 @Injectable()
 export class CognitoWrapper {
-  // private verifier: Object;
-  constructor() { 
-    // this.verifier = CognitoJwtVerifier.create({})
-    // this.verifier = CognitoJwtVerifier.create({
-    //   userPoolId: "",  
-    //   tokenUse: "",
-    //   clientId:"", 
-    // })
-    // this.validator = new Validator(
-    //   'https://cognito-idp.us-east-2.amazonaws.com/us-east-2_zG2SfHpXC',
-    //   '9v01t6v5p685510n0q5b6i9co',
-    // );
-    
-  }
-
+  verifier = CognitoJwtVerifier.create({
+    userPoolId: process.env.AWS_USER_POOL_ID,  
+    tokenUse: "access", 
+    clientId:process.env.AWS_ACCESS_KEY, 
+  }); 
+ 
   async validate(jwt: string) {
-    console.log("Trying some login shit"); 
-    const verifier = CognitoJwtVerifier.create({
-      userPoolId: process.env.AWS_USER_POOL_ID,  
-      tokenUse: "access", 
-      clientId:process.env.AWS_ACCESS_KEY, 
-    }); 
-
     try {
-      const payload = await verifier.verify(jwt); 
-      console.log("YAY ! STUFF WORKED :)"); 
-      console.log(payload); 
+      const payload = await this.verifier.verify(jwt); 
       return payload 
     } catch (error){
       console.log(error); 
@@ -44,3 +26,5 @@ export class CognitoWrapper {
     }
   }
 }
+
+

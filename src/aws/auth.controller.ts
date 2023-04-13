@@ -34,5 +34,5 @@ export class AuthController {
       return timesheets; 
     }
     return []; 
-  } 
+  }
 }

@@ -8,7 +8,7 @@ export class AuthService {
     private cognitoService: CognitoService,
   ) {}
 
-  async verifyJwt(jwt: string): Promise<Boolean> {
+  async verifyJwt(jwt: string): Promise<AuthVerificationResponse> {
     try {
       const userPayload = await this.cognitoService.validate(jwt);
       console.log(userPayload);
@@ -17,9 +17,11 @@ export class AuthService {
       const groups = userPayload['cognito:groups'];
       console.log(groups);
     
-      return true; 
+      return {isValidated: true, groups: groups}; 
     } catch (e) {
       throw new UnauthorizedException();
     }
   }
 }
+
+export type AuthVerificationResponse = { isValidated: boolean, groups: string[] }

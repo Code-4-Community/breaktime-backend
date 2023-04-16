@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Headers , Body, UseGuards} from '@nestjs/common';
+import { Controller, Get, Post, Headers , Body, UseGuards, Param} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {WriteEntryToTable, UserTimesheets} from '../dynamodb'; 
 
@@ -24,7 +24,7 @@ export class AuthController {
   }
   
   @Get('timesheet')
-  @Roles('breaktime-management-role')
+  @Roles('breaktime-admin')
   public async grab_timesheets(@Headers() headers: any): Promise<TimeSheetSchema[]> {
     const userId = await TokenClient.grabUserID(headers); 
 

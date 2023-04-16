@@ -11,9 +11,6 @@ export class AuthenticationMiddleware implements NestMiddleware {
   constructor(private authService: AuthService) {}
 
   async use(req: any, res: any, next: () => void) {
-    console.log("Authentication middleware.ts callback is here");
-    console.log()
-    
     const authHeader = req.headers['authorization'];
     if (!authHeader) return next();
     

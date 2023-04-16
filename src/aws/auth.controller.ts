@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Headers , Body, UseGuards, Param} from '@nestjs/common';
+import { Controller, Get, Post, Headers , Body, UseGuards} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {WriteEntryToTable, UserTimesheets} from '../dynamodb'; 
 

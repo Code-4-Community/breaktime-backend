@@ -24,7 +24,7 @@ export class AuthController {
   }
   
   @Get('timesheet')
-  @Roles('breaktime-admin')
+  //@Roles('breaktime-management-role')
   public async grab_timesheets(@Headers() headers: any): Promise<TimeSheetSchema[]> {
     const userId = await TokenClient.grabUserID(headers); 
 

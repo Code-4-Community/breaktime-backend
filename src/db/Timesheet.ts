@@ -27,12 +27,13 @@ export const TimeEntrySchema = z.object({
   EndDate: z.number(),
 })
 
+// TODO : make sure this works with the JSON documents in dynamo - might be a string that needs to be parsed to JSON
 /**
  * Represents the database schema for a single shift or entry in the weekly timesheet
  */
 export const TimesheetEntrySchema = z.object({
   Type: z.string(), 
-  AssociateTimes: TimeEntrySchema,
+  AssociateTimes: TimeEntrySchema.optional(), // TODO should this be optional, since it's possible for a supervisor to report a schedule entry the associate didn't log?
   SupervisorTimes: TimeEntrySchema.optional(),
   AdminTimes: TimeEntrySchema.optional(),
   Comment: CommentSchema.optional(),
@@ -47,7 +48,7 @@ export const TimeSheetSchema = z.object({
   StartDate: z.number(),
   Status: z.string(),
   CompanyID: z.string(), 
-  TableData: z.array(TimeEntrySchema), 
+  TableData: z.array(TimesheetEntrySchema), 
   ScheduleData: z.array(ScheduleEntrySchema).optional(),
 })
 

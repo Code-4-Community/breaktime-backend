@@ -35,6 +35,8 @@ export async function UserTimesheets(uuid:string): Promise<TimeSheetSchema[]> {
   const timesheetData = unmarshalledItems.map((i) =>
    TimeSheetSchema.parse(i)
   );
+
+  console.log(timesheetData);
   return timesheetData;
 }
 

@@ -1,12 +1,14 @@
 import { z } from "zod";
 
 /**
- * Represents the database schema for a comment
+ * Represents the database schema for a note. This can be one of the following types:
+ * -- Comment: a general comment made for an entry or whole timesheet.
+ * -- Report: a specific report to reflect an incident that happens and requires admin attention, e.g. no-show or late attendance
  */
-export const CommentSchema = z.object({
+export const NoteSchema = z.object({
   Type: z.string(),
   AuthorUUID: z.string(),
-  Timestamp: z.number(),
+  DateTime: z.number(),
   Content: z.string(),
   State: z.string(),
 })
@@ -27,19 +29,29 @@ export const TimeEntrySchema = z.object({
   EndDate: z.number(),
 })
 
+/**
+ * Represents the database schema for the status of a timesheet. This could be one of the following types:
+ * -- NotSubmitted
+ * -- SupervisorReview (associate submitted, waiting for supervisor to submit)
+ * -- AdminReview (assosciate and supervisor have both submitted, waiting for admin to submit)
+ * -- Approved (Breaktime admin has reviewed and approved the associate and supervisor submissions)
+ * -- NotApproved (Timesheet could not be process for some reason, further manual action is required)
+ * 
+ * SubmittedDate reflects the time of last submission, whether from associate, supervisor, or admin.
+ */
 export const StatusSchema = z.object({
   StatusType: z.string(),
   SubmittedDate: z.number(),
 })
 
 /**
- * Represents the database schema for a single shift or entry in the weekly timesheet
+ * Represents the database schema for a single shift or entry in the weekly timesheet. 
  */
 export const TimesheetEntrySchema = z.object({
-  AssociateTimes: TimeEntrySchema.optional(), // TODO should this be optional, since it's possible for a supervisor to report a schedule entry the associate didn't log?
+  AssociateTimes: TimeEntrySchema.optional(),
   SupervisorTimes: TimeEntrySchema.optional(),
   AdminTimes: TimeEntrySchema.optional(),
-  Comment: CommentSchema.optional(),
+  Note: NoteSchema.optional(),
 })
 
 /**
@@ -51,9 +63,9 @@ export const TimeSheetSchema = z.object({
   StartDate: z.number(),
   Status: StatusSchema,
   CompanyID: z.string(), 
-  TableData: z.array(TimesheetEntrySchema), 
+  HoursData: z.array(TimesheetEntrySchema), 
   ScheduleData: z.array(ScheduleEntrySchema).optional(),
-  WeekComments:z.array(CommentSchema).optional(),
+  WeekNotes: z.array(NoteSchema).optional(),
 })
 
 export type TimeSheetSchema = z.infer<typeof TimeSheetSchema>

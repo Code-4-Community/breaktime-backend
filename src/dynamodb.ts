@@ -36,7 +36,6 @@ export async function UserTimesheets(uuid:string): Promise<TimeSheetSchema[]> {
    TimeSheetSchema.parse(i)
   );
 
-  console.log(timesheetData);
   return timesheetData;
 }
 

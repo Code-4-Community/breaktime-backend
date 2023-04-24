@@ -1,11 +1,14 @@
-import { Controller, Get, Post, Headers , Body} from '@nestjs/common';
+import { Controller, Get, Post, Headers , Body, UseGuards} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {WriteEntryToTable, UserTimesheets} from '../dynamodb'; 
 
 import TokenClient from './cognito/cognito.keyparser'
 import { TimeSheetSchema } from 'src/db/Timesheet';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles } from './decorators/roles.decorators';
 
 @Controller('auth')
+@UseGuards(RolesGuard)
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -19,7 +22,9 @@ export class AuthController {
 
     return "Success!"  
   }
+  
   @Get('timesheet')
+  //@Roles('breaktime-management-role')
   public async grab_timesheets(@Headers() headers: any): Promise<TimeSheetSchema[]> {
     const userId = await TokenClient.grabUserID(headers); 
 
@@ -29,5 +34,5 @@ export class AuthController {
       return timesheets; 
     }
     return []; 
-  } 
+  }
 }

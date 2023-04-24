@@ -19,7 +19,6 @@ export class CognitoWrapper {
   async validate(jwt: string) {
     try {
       const payload = await this.verifier.verify(jwt); 
-      console.log(payload);
       return payload 
     } catch (error){
       console.log(error); 

@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AuthVerificationResponse } from '../auth.service';
+import { AuthVerificationResponse } from 'src/aws/auth.service';
 
 
 /**

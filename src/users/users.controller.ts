@@ -1,12 +1,9 @@
 import { Controller, Get, Headers, UseGuards, Query} from '@nestjs/common';
 import { GetCompaniesForUser } from '../dynamodb'; 
-import { RolesGuard } from 'src/aws/guards/roles.guard';
-import { Roles } from 'src/aws/decorators/roles.decorators';
+import { Roles } from 'src/utils/decorators/roles.decorators';
 import { AuthService } from 'src/aws/auth.service';
 import TokenClient from 'src/aws/cognito/cognito.keyparser'
-
-
-
+import { RolesGuard } from 'src/utils/guards/roles.guard';
 
 @Controller('user')
 @UseGuards(RolesGuard)

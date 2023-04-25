@@ -1,6 +1,4 @@
-/**
- * Represents the mock for the 
- */
+
 export default interface User {
   sub: string; // user's unique identifier
   email: string; // user's email address
@@ -12,7 +10,7 @@ export default interface User {
 
 export const mockSupervisor: User = {
   sub: "9d4f45ed-25cf-4da2-a01c-50aeae1c8e83",
-  email: "9d4f45ed-25cf-4da2-a01c-50aeae1c8e83",
+  email: "testemail@test.com",
   given_name: "Test",
   family_name: "Admin",
   phone_number: "+11234567890",

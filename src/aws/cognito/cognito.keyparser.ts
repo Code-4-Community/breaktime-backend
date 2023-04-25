@@ -1,4 +1,5 @@
 import { CognitoJwtVerifier} from "aws-jwt-verify";
+import { CognitoIdentityServiceProvider } from "aws-sdk";
 import { mockSupervisor } from "src/utils/mock/user.mock";
 
 export class JWTVerifier {

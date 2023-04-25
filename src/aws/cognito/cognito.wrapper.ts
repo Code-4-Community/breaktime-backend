@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CognitoJwtVerifier} from "aws-jwt-verify";
+import { CognitoIdentityServiceProvider } from 'aws-sdk';
 
 import * as dotenv from 'dotenv';
 
@@ -13,8 +14,10 @@ export class CognitoWrapper {
   verifier = CognitoJwtVerifier.create({
     userPoolId: process.env.AWS_USER_POOL_ID,  
     tokenUse: "access", 
-    clientId:process.env.AWS_ACCESS_KEY, 
+    clientId: process.env.AWS_ACCESS_KEY, 
   }); 
+
+  serviceProvider = new CognitoIdentityServiceProvider();
  
   async validate(jwt: string) {
     try {
@@ -25,6 +28,23 @@ export class CognitoWrapper {
       console.log("Authentication error! See cognito wrapper"); 
     }
   }
+
+  async getUsers(userIDs: string[]) {
+    try {
+      for ( const userID of userIDs ) {
+        var params = {
+          UserPoolId: process.env.AWS_USER_POOL_ID,  
+          Filter: `sub = \"${ userID }\"`,
+          Limit: 1,
+        };
+
+        this.serviceProvider.listUsers(params, function(err, data) {
+          if (err) console.log(err, err.stack); // an error occurred
+          else     console.log(data);           // successful response
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
-
-

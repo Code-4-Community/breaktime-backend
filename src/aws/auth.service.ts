@@ -31,8 +31,6 @@ export class AuthService {
       throw new UnauthorizedException();
     }
   }
-
-  // TODO: getUserProfileFromCognito 
 }
 
 export type AuthVerificationResponse = { isValidated: boolean, groups: string[] }

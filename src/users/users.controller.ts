@@ -1,14 +1,14 @@
 import { Controller, Get, Headers, UseGuards, Query} from '@nestjs/common';
 import { GetCompaniesForUser } from '../dynamodb'; 
 import { Roles } from 'src/utils/decorators/roles.decorators';
-import { AuthService } from 'src/aws/auth.service';
 import TokenClient from 'src/aws/cognito/cognito.keyparser'
 import { RolesGuard } from 'src/utils/guards/roles.guard';
+import { UserService } from './user.service';
 
 @Controller('user')
 @UseGuards(RolesGuard)
 export class UsersController {
-  constructor(private authService: AuthService) {}
+  constructor(private userService: UserService) {}
   
   /**
    * Gets all the user data from a certain company/companies and returns and array. If no company ID is given, 
@@ -31,6 +31,12 @@ export class UsersController {
         companyIDs = (await GetCompaniesForUser(userId)).SupervisorCompanyIDs;
       }
   
+      const testList = ['d396491c-22cf-4d63-af1e-4e70e95a29c7',
+      '690a11a9-fad5-4e9d-8801-8d0dfaf9ab32']
+
+      this.userService.getUsersFromCognito(testList)
+
+      
       // get all users associated with companyId(s)
       // This will be db call with companyIds as a filter on the query
       // This only gets the UserIDs, NOT all the user info

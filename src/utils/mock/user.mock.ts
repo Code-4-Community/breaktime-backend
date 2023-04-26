@@ -9,7 +9,7 @@ export default interface User {
 }
 
 export const mockSupervisor: User = {
-  sub: "9d4f45ed-25cf-4da2-a01c-50aeae1c8e83",
+  sub: "d396491c-22cf-4d63-af1e-4e70e95a29c7",
   email: "testemail@test.com",
   given_name: "Test",
   family_name: "Admin",

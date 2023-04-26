@@ -20,9 +20,10 @@ export class UsersController {
    * @returns an array of Company objects that contain the companyID and associated User data
    */
   @Get('users')
-  @Roles('breaktime-admin', 'breaktime-supervisor')
+  //@Roles('breaktime-admin', 'breaktime-supervisor')
   public async getAllUsers(@Headers() headers: any, @Query('companyId') companyIDs?: string[]): Promise<CompanyUsers[]> {
     const userId = await TokenClient.grabUserID(headers); 
+    console.log(userId);
 
     if (userId) {
 
@@ -30,9 +31,10 @@ export class UsersController {
       if (companyIDs === undefined || companyIDs.length === 0) {
         companyIDs = (await GetCompaniesForUser(userId)).SupervisorCompanyIDs;
       }
+
+      console.log(companyIDs);
   
-      const testList = ['d396491c-22cf-4d63-af1e-4e70e95a29c7',
-      '690a11a9-fad5-4e9d-8801-8d0dfaf9ab32']
+      const testList = ['d396491c-22cf-4d63-af1e-4e70e95a29c7', '690a11a9-fad5-4e9d-8801-8d0dfaf9ab32']
 
       this.userService.getUsersFromCognito(testList)
 

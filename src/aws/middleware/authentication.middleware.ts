@@ -13,7 +13,8 @@ export class AuthenticationMiddleware implements NestMiddleware {
 
   async use(req: any, res: any, next: () => void) {
     if (process.env.ENV_TYPE && process.env.ENV_TYPE === 'test') {
-      return {isValidated: true, groups: mockSupervisor['cognito:groups']};
+      req.user = {isValidated: true, groups: mockSupervisor['cognito:groups']};
+      return next();
     }
     const authHeader = req.headers['authorization'];
     if (!authHeader) return next();

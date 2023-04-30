@@ -12,6 +12,7 @@ export class UserService {
       const users = await this.cognitoService.getUsers(userIDs);
 
       // Parse out user data, map to the correct object here?
+      console.log(users);
 
     } catch (err) {
       console.log(err);

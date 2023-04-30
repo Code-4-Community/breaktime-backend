@@ -21,7 +21,7 @@ export class UsersController {
    */
   @Get('users')
   //@Roles('breaktime-admin', 'breaktime-supervisor')
-  public async getAllUsers(@Headers() headers: any, @Query('companyId') companyIDs?: string[]): Promise<CompanyUsers[]> {
+  public async getAllUsers(@Headers() headers: any, @Query('companyIds') companyIDs?: string[]): Promise<CompanyUsers[]> {
     const userId = await TokenClient.grabUserID(headers); 
     console.log(userId);
 
@@ -56,6 +56,6 @@ export class UsersController {
 
 }
 
-export type CompanyUsers = {"companyName": string, "userIDs": string[]};
+export type CompanyUsers = {"companyID": string, "userIDs": string[]};
 
 

@@ -12,6 +12,6 @@ export class CognitoService {
   }
 
   async getUsers(userIDs: string[]) {
-    return await this.cognitoWrapper.getUsers(userIDs);
+    return await this.cognitoWrapper.getUsersByIds(userIDs);
   }
 }

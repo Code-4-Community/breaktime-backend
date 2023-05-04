@@ -3,7 +3,7 @@ import { unmarshall, marshall } from '@aws-sdk/util-dynamodb';
 import * as dotenv from 'dotenv';
 
 import {TimeSheetSchema} from './db/Timesheet'
-import { UserCompaniesSchema } from './db/CompanyUsers';
+import { CompanySchema, UserCompaniesSchema } from './db/CompanyUsers';
 
 dotenv.config();
 
@@ -75,6 +75,40 @@ export async function GetCompaniesForUser(uuid:string): Promise<UserCompaniesSch
   }
 
   return userCompaniesData[0];
+}
+
+/**
+ * 
+ */
+export async function GetCompanyData(companyID:string): Promise<CompanySchema> {
+  const command = new QueryCommand({
+    TableName: 'BreaktimeCompanyToUsers',
+    KeyConditionExpression: "CompanyID = :s",
+    ExpressionAttributeValues: {
+    ":s": { S: `${companyID}` }}, 
+  });
+
+  // get the items from DynamoDB with our query
+  const dynamoRawResult = await client.send(command);
+
+  if (dynamoRawResult == null || dynamoRawResult.Items == null) {
+    throw new Error('Invalid response from DynamoDB, got undefined/null');
+  }
+
+  // Convert Dynamo items to JS objects
+  const unmarshalledItems = dynamoRawResult.Items.map((i) => unmarshall(i));
+
+  // Parse the items into our expected Company schema.
+  const companyData = unmarshalledItems.map((i) =>
+   CompanySchema.parse(i)
+  );
+
+  // There should only ever be one entry per company in the table (since there's no sort key, the partition key is the only unique index used)
+  if (companyData.length != 1) {
+    throw new Error('Invalid entries in DynamoDB, should only have a single entry per user');
+  }
+
+  return companyData[0];
 }
 
 export async function WriteEntryToTable(table:TimeSheetSchema): Promise<Boolean> {

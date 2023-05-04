@@ -8,19 +8,19 @@ import * as dotenv from 'dotenv';
 import { CognitoUser} from './User.client';
 
 
-const u_pool:string = process.env.AWS_USER_POOL_ID; 
-
 // incase things break https://github.com/awslabs/aws-jwt-verify 
 dotenv.config();
 @Injectable()
 export class CognitoWrapper {
+  userPoolId: string = process.env.AWS_USER_POOL_ID; 
+
   verifier = CognitoJwtVerifier.create({
-    userPoolId: process.env.AWS_USER_POOL_ID,  
+    userPoolId: this.userPoolId,  
     tokenUse: "access", 
     clientId: process.env.AWS_ACCESS_KEY, 
   }); 
 
-  // TODO : uhhhhh this requires no credentials?? Can anyone get our users' attributes if they have our region and user pool id????
+  // TODO : uhhhhh does this require no credentials? I think that it may have something to with how we set up credentialproviders, but not sure... Can anyone get our users' attributes if they have our region and user pool id?
   serviceProvider = new CognitoIdentityProviderClient({ region: process.env.AWS_USER_POOL_REGION });
  
   async validate(jwt: string) {
@@ -34,10 +34,31 @@ export class CognitoWrapper {
   }
 
   /**
-   * 
-   * @param userIDs 
+   * Gets all user data from the current Cognito user pool.
+   * @returns 
    */
-  async getUsers(userIDs: string[]) {
+  async getUsers() {
+    // Reference : https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-cognito-identity-provider/
+    try {
+      // Create list of users to be returned 
+      const userData = await this.listUsers(this.userPoolId);
+
+      console.log(userData);
+      if (userData == null) {
+        throw new Error("Issue with retrieving user data from user pool.");
+      }
+
+      return userData.map(user => CognitoUser.parse(user));
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  }
+
+  /**
+   * Gets users that match the userIds passed in by making a separate request for each userId to Cognito.
+   */
+  async getUsersByIds(userIDs: string[]) {
     // Reference : https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-cognito-identity-provider/
     try {
       // Create list of users to be returned 
@@ -46,13 +67,10 @@ export class CognitoWrapper {
       // TODO : There is a read limit of 30 calls per seconds for ListUsers, will need to do throttling here if over 30.
       // May also want to eventually do re-calls with exponential backoff
       for ( const userID of userIDs ) {
-        var params = {
-          userPoolId: process.env.AWS_USER_POOL_ID,  
-          filter: `sub = \"${ userID }\"`,
-          limit: 1,
-        };
+        var filter =  `sub = \"${ userID }\"`;
+        var limit = 1
 
-        const data = await this.listUsers(params);
+        const data = await this.listUsers(this.userPoolId, filter, limit);
 
         console.log(data);
         if (data == null || data.length === 0) {
@@ -65,10 +83,11 @@ export class CognitoWrapper {
       return users;
     } catch (error) {
       console.log(error);
+      return [];
     }
   }
 
-  listUsers = async ({ userPoolId, filter, limit  }) => {  
+  async listUsers (userPoolId: string, filter?: string, limit?: number) {  
     const command = new ListUsersCommand({
       UserPoolId: userPoolId,
       Filter: filter,

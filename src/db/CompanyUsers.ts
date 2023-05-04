@@ -5,7 +5,10 @@ import { z } from "zod";
  * Represents the database schema for a company object, including list of users that belong to the company
  */
 export const CompanySchema = z.object({
-
+  CompanyID: z.string(),
+  CompanyName: z.string(),
+  AssociateIDs: z.array(z.string().nonempty()),
+  SupervisorIDs: z.array(z.string().nonempty())
 })
 
 /**
@@ -19,3 +22,4 @@ export const UserCompaniesSchema = z.object({
 
 
 export type UserCompaniesSchema = z.infer<typeof UserCompaniesSchema>
+export type CompanySchema = z.infer<typeof CompanySchema>

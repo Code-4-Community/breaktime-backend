@@ -21,4 +21,7 @@ export const CognitoUser = z.object({
   Username: z.string(),
 });
 
+/** Represents the user data returned from a token verification payload */
+export type VerifiedUserInfo = { sub: string, groups: string[] }
+
 export type CognitoUser = z.infer<typeof CognitoUser>;

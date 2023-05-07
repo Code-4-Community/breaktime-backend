@@ -5,11 +5,12 @@ import TokenClient from 'src/aws/cognito/cognito.keyparser'
 import { RolesGuard } from 'src/utils/guards/roles.guard';
 import { UserService } from './user.service';
 import { User } from './User.model';
+import { CognitoService } from 'src/aws/cognito/cognito.service';
 
 @Controller('user')
 @UseGuards(RolesGuard)
 export class UsersController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService, private cognitoService: CognitoService) {}
   
   // TODO : For now, this primarily just works for supervisors, rather than admins. Some additional checks will need to be added for full admin support
   /**
@@ -24,15 +25,17 @@ export class UsersController {
    */
   @Get('users')
   @Roles('breaktime-admin', 'breaktime-supervisor')
-  public async getAllUsers(@Headers() headers: any, @Query('companyIds') companyIds?: string[], @Query('roles') roles: string[] = ['associate']): Promise<CompanyUsers[]> {
-    // TODO : This needs to get user role data as well, or we need to find a way to grab it from the Roles guard to check if a user is an admin or supervisor
-    const userId = await TokenClient.grabUserID(headers); 
-    console.log(userId);
-    console.log(companyIds);
+  public async getAllUsers(@Headers() headers: any, @Query('companyIds') companyIDs?: string[], @Query('roles') roles: string[] = ['associate']): Promise<CompanyUsers[]> {
+    const userData = await TokenClient.getUserInfo(headers);
 
-    if (!userId) {
+    if (!userData) {
       return [];
     }
+    const userId = userData.sub;
+    const userGroups = userData.groups;
+
+    // Check the groups of the given user
+    const isAdmin = userGroups.includes("breaktime-admin");
 
     // the company IDs the user belongs to as a supervisor
     const userCompanyIds = (await GetCompaniesForUser(userId)).SupervisorCompanyIDs;
@@ -79,6 +82,7 @@ export class UsersController {
 
     // return company array
     return companyUserList;
+
   }
 
 }

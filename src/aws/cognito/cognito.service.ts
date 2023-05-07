@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import { CognitoWrapper } from './cognito.wrapper';
+import { VerifiedUserInfo } from './User.client';
 
 dotenv.config();
 @Injectable()

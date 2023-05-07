@@ -60,7 +60,7 @@ export const TimeSheetSchema = z.object({
   TimesheetID: z.number(), 
   UserID: z.string().uuid(), 
   StartDate: z.number(),
-  Status: z.array(StatusSchema),
+  StatusList: z.array(StatusSchema),
   CompanyID: z.string(), 
   HoursData: z.array(TimesheetEntrySchema).default([]), 
   ScheduleData: z.array(ScheduleEntrySchema).default([]),

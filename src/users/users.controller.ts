@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, UseGuards, Query} from '@nestjs/common';
+import { Controller, Get, Headers, UseGuards, Query, HttpStatus, Res, HttpException} from '@nestjs/common';
 import { GetCompaniesForUser, GetCompanyData } from '../dynamodb'; 
 import { Roles } from 'src/utils/decorators/roles.decorators';
 import TokenClient from 'src/aws/cognito/cognito.keyparser'
@@ -11,54 +11,67 @@ import { User } from './User.model';
 export class UsersController {
   constructor(private userService: UserService) {}
   
+  // TODO : For now, this primarily just works for supervisors, rather than admins. Some additional checks will need to be added for full admin support
   /**
    * Gets all the user data from a certain company/companies and returns and array. If no company ID is given, 
    * we'll default to use the companies that the requesting user belongs to as the filter. If the user is an admin, return all users
    * unless a company ID is specified.
    * 
-   * @param companyID an optional filter query to get users only from this company
+   * @param companyID an optional filter query to get users only from this company, comma-delineated
    * @param roles an filter query to specify which users to get by roles (associate, supervisor, and/or admin); by default, will be only associates
    * @throws some error if the companyID requested is not one that the user belongs, maybe 403 forbidden??
    * @returns an array of Company objects that contain the companyID and associated User data
    */
   @Get('users')
-  //@Roles('breaktime-admin', 'breaktime-supervisor')
-  public async getAllUsers(@Headers() headers: any, @Query('companyIds') companyIDs?: string[], @Query('roles') roles: string[] = ['associate']): Promise<CompanyUsers[]> {
+  @Roles('breaktime-admin', 'breaktime-supervisor')
+  public async getAllUsers(@Headers() headers: any, @Query('companyIds') companyIds?: string[], @Query('roles') roles: string[] = ['associate']): Promise<CompanyUsers[]> {
+    // TODO : This needs to get user role data as well, or we need to find a way to grab it from the Roles guard to check if a user is an admin or supervisor
     const userId = await TokenClient.grabUserID(headers); 
     console.log(userId);
+    console.log(companyIds);
 
     if (!userId) {
       return [];
     }
 
+    // the company IDs the user belongs to as a supervisor
+    const userCompanyIds = (await GetCompaniesForUser(userId)).SupervisorCompanyIDs;
+
     // Get companyId(s) associated with user if no ids were provided via the queries
-    if (companyIDs === undefined || companyIDs.length === 0) {
-      companyIDs = (await GetCompaniesForUser(userId)).SupervisorCompanyIDs;
+    if (companyIds === undefined || companyIds.length === 0) {
+      companyIds = userCompanyIds;
+    } else {
+      // TODO: For later, we'll want to bypass this is a user is an admin
+      // Throw an error if the user is not an admin and doesn't have access to one or more of the companyIDs specified
+      for (const companyId of companyIds) {
+        if (!userCompanyIds.includes(companyId)) {
+          throw new HttpException(`User is not authorized to access company data for company ID ${companyId}`, HttpStatus.FORBIDDEN);
+        }
+      }
     }
-    console.log(companyIDs);
+
+    console.log(companyIds);
 
     const companyUserList: CompanyUsers[] = [];
 
     // get all users associated with companyId(s)
-    for (const companyId of companyIDs) {
+    for (const companyId of companyIds) {
       // This will be db call with companyIds as a filter on the query
       // This only gets the UserIDs, NOT all the user info
       const companyData = await GetCompanyData(companyId);
-      let targetUsers = [];
+
+      let associateData = [];
+      let supervisorData = [];
 
       if (roles.includes('associate')) {
-        targetUsers = targetUsers.concat(companyData.AssociateIDs);
+        associateData = await this.userService.getUsersFromCognito(companyData.AssociateIDs);
       }
 
       if (roles.includes('supervisor')) {
-        targetUsers = targetUsers.concat(companyData.SupervisorIDs);
+        supervisorData = await this.userService.getUsersFromCognito(companyData.SupervisorIDs);
       }
-
-      // For testing purposes, use this testList instead of targetUsers
-      // const testList = ['d396491c-22cf-4d63-af1e-4e70e95a29c7', '690a11a9-fad5-4e9d-8801-8d0dfaf9ab32'];
-      const userData: User[] = await this.userService.getUsersFromCognito(targetUsers);
-
-      companyUserList.push({ CompanyID: companyId, Users: userData });
+      
+      companyUserList.push({ CompanyID: companyId, Associates: associateData, Supervisors: supervisorData });
     }
 
     // return company array
@@ -67,6 +80,6 @@ export class UsersController {
 
 }
 
-export type CompanyUsers = {"CompanyID": string, "Users": User[]};
+export type CompanyUsers = { "CompanyID": string, "Associates": User[], "Supervisors": User[] };
 
 

@@ -62,16 +62,19 @@ export class UsersController {
 
       let associateData = [];
       let supervisorData = [];
+      let companyUserData : CompanyUsers = { CompanyID: companyId }
 
       if (roles.includes('associate')) {
         associateData = await this.userService.getUsersFromCognito(companyData.AssociateIDs);
+        companyUserData.Associates = associateData;
       }
 
       if (roles.includes('supervisor')) {
         supervisorData = await this.userService.getUsersFromCognito(companyData.SupervisorIDs);
+        companyUserData.Supervisors = supervisorData;
       }
-      
-      companyUserList.push({ CompanyID: companyId, Associates: associateData, Supervisors: supervisorData });
+
+      companyUserList.push(companyUserData);
     }
 
     // return company array
@@ -80,6 +83,6 @@ export class UsersController {
 
 }
 
-export type CompanyUsers = { "CompanyID": string, "Associates": User[], "Supervisors": User[] };
+export type CompanyUsers = { CompanyID: string, Associates?: User[], Supervisors?: User[] };
 
 

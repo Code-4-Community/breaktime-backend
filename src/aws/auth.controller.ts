@@ -31,6 +31,7 @@ export class AuthController {
     if (userId) {
       console.log("Fetching timesheets for user ", userId); 
       const timesheets = await UserTimesheets(userId)
+      console.log(timesheets);
       return timesheets; 
     }
     return []; 

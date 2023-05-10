@@ -18,12 +18,14 @@ console.log('secret', process.env.AWS_SECRET_ACCESS_KEY!);
 const client = new DynamoDB({ region: 'us-east-2' });
 
 export async function UserTimesheets(uuid:string): Promise<TimeSheetSchema[]> {
+  // Set up the query to get all timesheets for a given uuid
   const command = new QueryCommand({
     TableName: 'BreaktimeTimesheets',
     KeyConditionExpression: "UserID = :s", 
     ExpressionAttributeValues: {
       ":s": { S: `${uuid}` }}, 
   });
+
   const dynamoRawResult = await client.send(command);
 
   if (dynamoRawResult == null || dynamoRawResult.Items == null) {
@@ -33,6 +35,7 @@ export async function UserTimesheets(uuid:string): Promise<TimeSheetSchema[]> {
   const timesheetData = unmarshalledItems.map((i) =>
    TimeSheetSchema.parse(i)
   );
+
   return timesheetData;
 }
 

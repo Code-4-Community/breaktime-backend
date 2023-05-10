@@ -35,7 +35,6 @@ export class CognitoWrapper {
 
   /**
    * Gets all user data from the current Cognito user pool.
-   * @returns 
    */
   async getUsers() {
     // Reference : https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-cognito-identity-provider/
@@ -87,14 +86,23 @@ export class CognitoWrapper {
     }
   }
 
+  /**
+   * Gets a list of raw user data from a specified Cognito user pool with given filter queries and returned user limit.
+   * If an error occurs, log the error and return an empty list.
+   */
   async listUsers (userPoolId: string, filter?: string, limit?: number) {  
-    const command = new ListUsersCommand({
-      UserPoolId: userPoolId,
-      Filter: filter,
-      Limit: limit
-    });
+    try {
+      const command = new ListUsersCommand({
+        UserPoolId: userPoolId,
+        Filter: filter,
+        Limit: limit
+      });
   
-    return this.serviceProvider.send(command)
-      .then((data) => data.Users);
+      return this.serviceProvider.send(command)
+        .then((data) => data.Users);
+    } catch (error) {
+      console.log(`Error getting users from Cognito user pool ${userPoolId} and filter ${filter}: ${error}`);
+      return [];
+    }
   };
 }

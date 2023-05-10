@@ -78,7 +78,11 @@ export async function GetCompaniesForUser(uuid:string): Promise<UserCompaniesSch
 }
 
 /**
- * 
+ * Retrive the any necessary company data for the specified companyId, including users belonging to that company, from DynamoDB
+ * and map to appropriate schema objects.
+ * @param companyID the requested company to pull data for
+ * @throws Error if there are no results returned from DynamoDB for the companyId, or if there are multiple companies found for the same id
+ * @returns DynamoDB company data mapped to JS company schema
  */
 export async function GetCompanyData(companyID:string): Promise<CompanySchema> {
   const command = new QueryCommand({

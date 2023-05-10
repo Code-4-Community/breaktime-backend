@@ -19,7 +19,7 @@ export class UsersController {
    * 
    * @param companyID an optional filter query to get users only from this company, comma-delineated
    * @param roles an filter query to specify which users to get by roles (associate, supervisor, and/or admin); by default, will be only associates
-   * @throws some error if the companyID requested is not one that the user belongs, maybe 403 forbidden??
+   * @throws 401 UNAUTHORIZED if the companyID requested is not one that the user has access to
    * @returns an array of Company objects that contain the companyID and associated User data
    */
   @Get('users')
@@ -45,7 +45,7 @@ export class UsersController {
       // Throw an error if the user is not an admin and doesn't have access to one or more of the companyIDs specified
       for (const companyId of companyIds) {
         if (!userCompanyIds.includes(companyId)) {
-          throw new HttpException(`User is not authorized to access company data for company ID ${companyId}`, HttpStatus.FORBIDDEN);
+          throw new HttpException(`User is not authorized to access company data for company ID ${companyId}`, HttpStatus.UNAUTHORIZED);
         }
       }
     }

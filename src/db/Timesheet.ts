@@ -17,16 +17,16 @@ export const NoteSchema = z.object({
  * Represents the database schema for a schedule shift entry, made by a supervisor or admin
  */
 export const ScheduleEntrySchema = z.object({
-  StartDate: z.number(),
-  EndDate: z.number(),
+  StartDateTime: z.number(),
+  EndDateTime: z.number(),
 })
 
 /**
  * Represents the database schema for a clockin/clockout pair in epoch
  */
 export const TimeEntrySchema = z.object({
-  StartDate: z.number(),
-  EndDate: z.number(),
+  StartDateTime: z.number(),
+  EndDateTime: z.number(),
 })
 
 /**
@@ -40,7 +40,7 @@ export const TimeEntrySchema = z.object({
  */
 export const StatusSchema = z.object({
   StatusType: z.enum(["HoursSubmitted", "HoursReviewed", "ScheduleSubmitted", "Finalized"]),
-  SubmittedDate: z.number(),
+  SubmittedDateTime: z.number(),
 })
 
 /**

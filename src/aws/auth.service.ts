@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 
 import { CognitoService } from './cognito/cognito.service';
+import { mockSupervisor } from 'src/utils/mock/user.mock';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,10 @@ export class AuthService {
    * @returns if the validation was successful and what Cognito groups the user is a part of
    */
   async verifyJwt(jwt: string): Promise<AuthVerificationResponse> {
+    if (process.env.ENV_TYPE && process.env.ENV_TYPE === "test") {
+      console.log("Testing environment - mock user will be used, authentication skipped");
+      return {isValidated: true, groups: mockSupervisor['cognito:groups']}
+    }
     try {
       const userPayload = await this.cognitoService.validate(jwt);
       

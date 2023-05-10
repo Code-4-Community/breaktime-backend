@@ -10,4 +10,8 @@ export class CognitoService {
   async validate(jwt: string) {
     return await this.cognitoWrapper.validate(jwt);
   }
+
+  async getUsers(userIDs: string[]) {
+    return await this.cognitoWrapper.getUsersByIds(userIDs);
+  }
 }

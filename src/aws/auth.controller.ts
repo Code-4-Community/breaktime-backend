@@ -4,8 +4,7 @@ import {WriteEntryToTable, UserTimesheets} from '../dynamodb';
 
 import TokenClient from './cognito/cognito.keyparser'
 import { TimeSheetSchema } from 'src/db/Timesheet';
-import { RolesGuard } from './guards/roles.guard';
-import { Roles } from './decorators/roles.decorators';
+import { RolesGuard } from 'src/utils/guards/roles.guard';
 
 @Controller('auth')
 @UseGuards(RolesGuard)

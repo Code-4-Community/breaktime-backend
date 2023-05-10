@@ -1,4 +1,6 @@
 import { CognitoJwtVerifier} from "aws-jwt-verify";
+import { CognitoIdentityServiceProvider } from "aws-sdk";
+import { mockSupervisor } from "src/utils/mock/user.mock";
 
 export class JWTVerifier {
     verifier = CognitoJwtVerifier.create({
@@ -9,6 +11,11 @@ export class JWTVerifier {
 
 
     public async grabUserID (headers:any): Promise<string> {
+        if (process.env.ENV_TYPE && process.env.ENV_TYPE === "test") {
+            console.log("Testing environment - mock user sub will be used with token client");
+            return mockSupervisor.sub;
+        }
+
         if (headers.hasOwnProperty('authorization')) {
             const resp = await this.verifyJWT(headers.authorization); 
             return resp.sub; 

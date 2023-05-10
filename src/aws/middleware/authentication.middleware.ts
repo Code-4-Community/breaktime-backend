@@ -1,5 +1,6 @@
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { AuthService } from '../auth.service';
+import { mockSupervisor } from 'src/utils/mock/user.mock';
 
 /**
  * Authenticates a request if it provides an auth token.
@@ -11,6 +12,10 @@ export class AuthenticationMiddleware implements NestMiddleware {
   constructor(private authService: AuthService) {}
 
   async use(req: any, res: any, next: () => void) {
+    if (process.env.ENV_TYPE && process.env.ENV_TYPE === 'test') {
+      req.user = {isValidated: true, groups: mockSupervisor['cognito:groups']};
+      return next();
+    }
     const authHeader = req.headers['authorization'];
     if (!authHeader) return next();
     

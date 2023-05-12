@@ -23,7 +23,7 @@ export const StatusType = z.object({
 });
 
 export const FrontendTimeSheetSchema = z.object({
-  TimesheetID: z.string(), 
+  TimesheetID: z.number(), 
   UserID: z.string(), 
   StartDate: z.number(),
   Status: StatusType, 

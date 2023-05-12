@@ -2,24 +2,6 @@ import {FrontendTimeSheetSchema} from '../frontend/TimesheetSchema'
 import { TimeSheetSchema, TimesheetEntrySchema, NoteSchema, ScheduleEntrySchema, TimeEntrySchema } from './Timesheet'
 import { RowSchema, CommentSchema, ScheduledRowSchema, TimeRowEntry } from '../frontend/RowSchema'
 
-
-/*
-    Abstracted operations on [TableData, ScheduleTableData, WeekNotes]: 
-        INSERT: Insert an item into the list 
-        UPDATE: Update a specific item in the list 
-        DELETE: Delete an item from the specified list 
-    STATUS_CHANGE: Update the status of a timesheet 
-    NOTES_INSERT: 
-*/
-
-export enum TimesheetOperations {
-    INSERT = "INSERT", 
-    UPDATE = "UPDATE", 
-    DELETE = "DELETE", 
-    STATUS_CHANGE = "STATUS_CHANGE", 
-    TIMESHEET_CREATE = "TIMESHEET_CREATE"
-}
-
 export class FrontendToDB {
 
     private mappings = {

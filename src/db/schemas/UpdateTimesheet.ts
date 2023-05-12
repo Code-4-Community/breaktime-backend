@@ -9,7 +9,7 @@ export const enum TimesheetOperations {
     DELETE = "DELETE", 
     STATUS_CHANGE = "STATUS_CHANGE", 
     CREATE_TIMESHEET = "CREATE_TIMESHEET"
-}
+} 
 
 
 

@@ -11,7 +11,7 @@ export const NoteSchema = z.object({
   DateTime: z.number(),
   Content: z.string(),
   State: z.enum(["Active", "Deleted"]),
-})
+});
 
 /**
  * Represents the database schema for a schedule shift entry, made by a supervisor or admin
@@ -19,7 +19,7 @@ export const NoteSchema = z.object({
 export const ScheduleEntrySchema = z.object({
   StartDateTime: z.number(),
   EndDateTime: z.number(),
-})
+});
 
 /**
  * Represents the database schema for a clockin/clockout pair in epoch
@@ -27,7 +27,7 @@ export const ScheduleEntrySchema = z.object({
 export const TimeEntrySchema = z.object({
   StartDateTime: z.number(),
   EndDateTime: z.number(),
-})
+});
 
 /**
  * Represents the database schema for the status of a timesheet. This could be one of the following types:
@@ -35,36 +35,41 @@ export const TimeEntrySchema = z.object({
  * -- HoursReviewed (Supervisor has reviewed and approved the associate-submitted hours)
  * -- ScheduleSubmitted (Supervisor has submitted the scheduled hours)
  * -- Finalized (Admin has approved the submitted hours and schedule, and resolved any issue necessary)
- * 
+ *
  * SubmittedDate reflects the time of last submission, whether from associate, supervisor, or admin.
  */
 export const StatusSchema = z.object({
-  StatusType: z.enum(["HoursSubmitted", "HoursReviewed", "ScheduleSubmitted", "Finalized"]),
+  StatusType: z.enum([
+    "HoursSubmitted",
+    "HoursReviewed",
+    "ScheduleSubmitted",
+    "Finalized",
+  ]),
   SubmittedDateTime: z.number(),
-})
+});
 
 /**
- * Represents the database schema for a single shift or entry in the weekly timesheet. 
+ * Represents the database schema for a single shift or entry in the weekly timesheet.
  */
 export const TimesheetEntrySchema = z.object({
   AssociateTimes: TimeEntrySchema.optional(),
   SupervisorTimes: TimeEntrySchema.optional(),
   AdminTimes: TimeEntrySchema.optional(),
   Note: NoteSchema.optional(),
-})
+});
 
 /**
  * Represents the database schema for a weekly timesheet
  */
 export const TimeSheetSchema = z.object({
-  TimesheetID: z.number(), 
-  UserID: z.string().uuid(), 
+  TimesheetID: z.number(),
+  UserID: z.string().uuid(),
   StartDate: z.number(),
   StatusList: z.array(StatusSchema),
-  CompanyID: z.string(), 
-  HoursData: z.array(TimesheetEntrySchema).default([]), 
+  CompanyID: z.string(),
+  HoursData: z.array(TimesheetEntrySchema).default([]),
   ScheduleData: z.array(ScheduleEntrySchema).default([]),
   WeekNotes: z.array(NoteSchema).default([]),
-})
+});
 
-export type TimeSheetSchema = z.infer<typeof TimeSheetSchema>
+export type TimeSheetSchema = z.infer<typeof TimeSheetSchema>;

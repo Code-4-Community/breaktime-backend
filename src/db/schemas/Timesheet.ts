@@ -6,6 +6,7 @@ import { z } from "zod";
  */
 export const NoteSchema = z.object({
   Type: z.enum(["Comment", "Report"]),
+  EntryID: z.string().uuid(), 
   AuthorUUID: z.string().uuid(),
   DateTime: z.number(),
   Content: z.string(),
@@ -16,6 +17,7 @@ export const NoteSchema = z.object({
  * Represents the database schema for a schedule shift entry, made by a supervisor or admin
  */
 export const ScheduleEntrySchema = z.object({
+  EntryID: z.string().uuid(), 
   Date: z.number(), 
   StartDateTime: z.number(),
   EndDateTime: z.number(),
@@ -36,6 +38,7 @@ export const TimeEntrySchema = z.object({
  */
 export const TimesheetEntrySchema = z.object({
   Type: z.enum(["Regular", "PTO"]),
+  EntryID: z.string().uuid(), 
   Date: z.number(), 
   AssociateTimes: TimeEntrySchema.optional(),
   SupervisorTimes: TimeEntrySchema.optional(),

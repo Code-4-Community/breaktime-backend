@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import {WriteEntryToTable, UserTimesheets} from '../dynamodb'; 
 
 import TokenClient from './cognito/cognito.keyparser'
-import { TimeSheetSchema } from 'src/db/Timesheet';
+import { TimeSheetSchema } from 'src/db/schemas/Timesheet';
 import { RolesGuard } from 'src/utils/guards/roles.guard';
 
 @Controller('auth')
@@ -16,14 +16,18 @@ export class AuthController {
     const userId = await TokenClient.grabUserID(headers); 
     if (userId) {
       console.log("Writing")
+      //Convert from frontend timesheet schema to backend 
+
       WriteEntryToTable(body.timesheet); 
     }
+    
 
     return "Success!"  
   }
   
   @Get('timesheet')
   //@Roles('breaktime-management-role')
+  
   public async grab_timesheets(@Headers() headers: any): Promise<TimeSheetSchema[]> {
     const userId = await TokenClient.grabUserID(headers); 
 

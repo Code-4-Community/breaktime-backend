@@ -29,6 +29,7 @@
     "aws-jwt-verify": "^3.4.0",
     "aws-sdk": "^2.1327.0",
     "dotenv": "^16.0.3",
+    "moment-timezone": "^0.5.43",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
     "zod": "^3.21.4"

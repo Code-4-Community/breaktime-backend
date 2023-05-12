@@ -2,8 +2,8 @@ import { DynamoDBClient, DynamoDB, ScanCommand, QueryCommand, BatchGetItemComman
 import { unmarshall, marshall } from '@aws-sdk/util-dynamodb';
 import * as dotenv from 'dotenv';
 
-import {TimeSheetSchema} from './db/Timesheet'
-import { CompanySchema, UserCompaniesSchema } from './db/CompanyUsers';
+import {TimeSheetSchema} from './db/schemas/Timesheet'
+import { CompanySchema, UserCompaniesSchema } from './db/schemas/CompanyUsers';
 
 dotenv.config();
 

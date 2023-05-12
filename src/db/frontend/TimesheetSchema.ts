@@ -3,7 +3,6 @@
 //////////////////////////////////////////////////////////////////////////
 
 import { z } from "zod";
-import { ScheduleEntrySchema } from "../Timesheet";
 import {RowSchema, ScheduledRowSchema, CommentSchema} from './RowSchema'; 
 
 // The status is either undefined, for not being at that stage yet, or 
@@ -24,13 +23,13 @@ export const StatusType = z.object({
 });
 
 export const FrontendTimeSheetSchema = z.object({
-  TimesheetID: z.number(), 
+  TimesheetID: z.string(), 
   UserID: z.string(), 
   StartDate: z.number(),
   Status: StatusType, 
   CompanyID: z.string(), 
   TableData: z.array(RowSchema), 
-  ScheduleTableData: z.union([z.undefined(), z.array(ScheduleEntrySchema)]),
+  ScheduleTableData: z.union([z.undefined(), z.array(ScheduledRowSchema)]),
   WeekNotes: z.union([z.undefined(), z.array(CommentSchema)]), 
 }); 
 

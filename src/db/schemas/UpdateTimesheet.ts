@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { RowSchema, CommentSchema, ScheduledRowSchema } from "../frontend/RowSchema";
-
+import * as dbTypes from '../schemas/Timesheet'
 
 // Currently supported timesheet operations 
 export const enum TimesheetOperations {
@@ -29,8 +29,8 @@ export type DeleteRequest = z.infer<typeof DeleteRequest>
 
 export const InsertRequest = z.object({
     Type: availableListTypes, 
-    Item: z.union([RowSchema, CommentSchema, ScheduledRowSchema]), 
-})
+    Item: z.union([RowSchema, CommentSchema, ScheduledRowSchema, dbTypes.TimesheetEntrySchema]), 
+}) 
 export type InsertRequest = z.infer<typeof InsertRequest> 
 /*
     Schema for updating an item from the three possible list of items in the timesheet 
@@ -61,3 +61,4 @@ export const TimesheetUpdateRequest = z.object({
     Payload: z.union([DeleteRequest, UpdateRequest, InsertRequest])
 })
 export type TimesheetUpdateRequest = z.infer<typeof TimesheetUpdateRequest>
+

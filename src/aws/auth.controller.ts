@@ -6,23 +6,30 @@ import TokenClient from './cognito/cognito.keyparser'
 import { TimeSheetSchema } from 'src/db/schemas/Timesheet';
 import { RolesGuard } from 'src/utils/guards/roles.guard';
 
+import { UploadTimesheet } from 'src/db/uploads/UploadTimesheet';
+import { TimesheetUpdateRequest } from 'src/db/schemas/UpdateTimesheet';
+
 @Controller('auth')
 @UseGuards(RolesGuard)
 export class AuthController {
+
+  uploadApi = new UploadTimesheet(); 
+
   constructor(private authService: AuthService) {}
 
   @Post('timesheet')
-  public async upload_timesheet(@Headers() headers: any, @Body() body: any): Promise<string> {
+  public async upload_timesheet(@Headers() headers: any, @Body() body: TimesheetUpdateRequest): Promise<string> {
     const userId = await TokenClient.grabUserID(headers); 
+    
     if (userId) {
       console.log("Writing")
-      //Convert from frontend timesheet schema to backend 
-
-      WriteEntryToTable(body.timesheet); 
+      
+      const result = this.uploadApi.updateTimesheet(body, userId); 
+      //Do something with this result? 
+      return "Success"; 
     }
-    
+    return "Failure"; 
 
-    return "Success!"  
   }
   
   @Get('timesheet')

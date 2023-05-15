@@ -8,6 +8,7 @@ interface ItemsOperations {
     Insert(timesheet: TimeSheetSchema, body:InsertRequest): TimeSheetSchema 
     Delete(timesheet: TimeSheetSchema, body:DeleteRequest): TimeSheetSchema 
     Update(timesheet: TimeSheetSchema, body:UpdateRequest) : TimeSheetSchema 
+    Convert(timesheet: TimeSheetSchema, body: UpdateRequest | InsertRequest | DeleteRequest): TimeSheetSchema
 }
 
 export class ItemsDelegator {
@@ -16,7 +17,7 @@ export class ItemsDelegator {
     scheduleData = new ScheduledDataOperations() 
     notesData = new NotesOperations() 
 
-    public Delegate(body: InsertRequest | DeleteRequest | UpdateRequest) {
+    public AttributeToModify(body: InsertRequest | DeleteRequest | UpdateRequest) {
         switch (body.Type) {
             case TimesheetListItems.TABLEDATA:
                 return this.tableData;

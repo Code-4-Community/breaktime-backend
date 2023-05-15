@@ -17,6 +17,7 @@ export const TimeRowEntry = z.union([z.undefined(), z.object({
 export type TimeRowEntry = z.infer<typeof TimeRowEntry>
 
 export const CommentSchema = z.object({
+    UUID: z.string(), 
     AuthorID:z.string(), 
     Type: z.enum([CommentType.Comment, CommentType.Report]), 
     Timestamp: z.number(), 
@@ -26,8 +27,12 @@ export const CommentSchema = z.object({
 
 export type CommentSchema = z.infer<typeof CommentSchema> 
 
+export const RowType = z.enum([CellType.Regular, CellType.PTO]); 
+export type RowType = z.infer<typeof RowType> 
+
 export const RowSchema = z.object({
-    Type: z.enum([CellType.Regular, CellType.PTO]), 
+    UUID: z.string(), 
+    Type: RowType, 
     Date: z.number(), 
     Associate: TimeRowEntry, 
     Supervisor: TimeRowEntry, 
@@ -38,6 +43,7 @@ export type RowSchema = z.infer<typeof RowSchema>
 
 
 export const ScheduledRowSchema = z.object({
+    UUID: z.string(), 
     Date: z.number(), 
     Entry: TimeRowEntry
 }); 

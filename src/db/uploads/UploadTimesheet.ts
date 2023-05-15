@@ -1,4 +1,4 @@
-import { FrontendToDB } from "../schemas/FrontendConversions";
+import { DBToFrontend } from "../schemas/FrontendConversions";
 import { FrontendTimeSheetSchema } from "../frontend/TimesheetSchema";
 import { TimesheetUpdateRequest, TimesheetOperations } from "../schemas/UpdateTimesheet";
 
@@ -6,10 +6,12 @@ import {UserTimesheets} from "src/dynamodb"
 import { ExceptionsHandler } from "@nestjs/core/exceptions/exceptions-handler";
 import { ItemsDelegator } from "./ItemsOperations";
 
+import {WriteEntryToTable} from "src/dynamodb"
+import {frontendEntryConversions} from './EntryOperations'
 
 export class UploadTimesheet {
     
-    delegator = new ItemsDelegator() 
+    private delegator = new ItemsDelegator() 
 
     public async updateTimesheet(request: TimesheetUpdateRequest, userid: string): Promise<string> {
         /*
@@ -26,26 +28,29 @@ export class UploadTimesheet {
         if (selectedTimesheet.length == 1) {
 
             var modifiedTimesheet = undefined; 
-
+            //TODO - Mutate the respective fields to what they should be 
             switch (request.Operation) {
                 case TimesheetOperations.STATUS_CHANGE:
                     //TODO - Create the functionality for actually incrementing state - 
                     break; 
                 case TimesheetOperations.DELETE: 
-                    modifiedTimesheet =  this.delegator.Delegate(request.Payload).Delete(selectedTimesheet[0], request.Payload); 
+                    modifiedTimesheet =  this.delegator.AttributeToModify(request.Payload).Delete(selectedTimesheet[0], request.Payload); 
                     break; 
                 case TimesheetOperations.INSERT:
-                    modifiedTimesheet =  this.delegator.Delegate(request.Payload).Insert(selectedTimesheet[0], request.Payload); 
+                    //Determine attribute we are modifying and then also convert the field from frontend to backend. 
+                    modifiedTimesheet =  this.delegator.AttributeToModify(request.Payload).Insert(selectedTimesheet[0], 
+                        frontendEntryConversions.insertConversion(request.Payload)); 
                     break; 
                 case TimesheetOperations.UPDATE:
-                    modifiedTimesheet =  this.delegator.Delegate(request.Payload).Update(selectedTimesheet[0], request.Payload); 
+                    //Determine attribute we are modifying and then also convert the field from frontend to backend. 
+                    modifiedTimesheet =  this.delegator.AttributeToModify(request.Payload).Update(selectedTimesheet[0],
+                         frontendEntryConversions.updateConversion(request.Payload)); 
                     break; 
                 default: 
                     throw new Error(`Invalid operation: ${request.Operation}`); 
             }
             if (modifiedTimesheet !== undefined) {
-                //TODO - Upload this back to the DB? 
-                // Done? :) 
+                WriteEntryToTable(modifiedTimesheet); 
                 return "Success :)"
             }
             return "Failure"; 

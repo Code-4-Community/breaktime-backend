@@ -33,11 +33,17 @@ export const TimeEntrySchema = z.object({
   AuthorUUID: z.string().uuid(),
 })
 
+
+export enum CellType {
+  REGULAR = "Regular", 
+  PTO = "PTO"
+}
+
 /**
  * Represents the database schema for a single shift or entry in the weekly timesheet. 
  */
 export const TimesheetEntrySchema = z.object({
-  Type: z.enum(["Regular", "PTO"]),
+  Type: z.enum([CellType.REGULAR, CellType.PTO]),
   EntryID: z.string().uuid(), 
   Date: z.number(), 
   AssociateTimes: TimeEntrySchema.optional(),

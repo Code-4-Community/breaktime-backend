@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { AuthVerificationResponse } from "src/aws/auth.service";
+import { ValidatedUser } from "src/aws/auth.service";
 
 /**
  * Nest guard for role-based access (i.e. groups from Cognito). Reference: https://docs.nestjs.com/guards
@@ -32,7 +32,7 @@ export class RolesGuard implements CanActivate {
     // this is what has been set by the previous step(s).
     // In our case, this is from the Cognito groups a user is assigned.
     const request = context.switchToHttp().getRequest();
-    const user: AuthVerificationResponse = request.user;
+    const user: ValidatedUser = request.user;
 
     // Check that the user belongs to at least one of the required roles
     const validUserGroups = user.groups.filter((group) =>

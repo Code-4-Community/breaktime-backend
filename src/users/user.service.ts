@@ -8,6 +8,7 @@ import { GetCompaniesForUser, GetCompanyData } from "src/dynamodb";
 import { CognitoRoles } from "src/aws/cognito/Roles";
 import { error } from "console";
 
+// TODO : create a custom filter class instead of this that for each user
 @Injectable()
 export class UserService {
   constructor(private cognitoService: CognitoService) {}

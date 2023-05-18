@@ -11,7 +11,19 @@ export class CognitoService {
     return await this.cognitoWrapper.validate(jwt);
   }
 
-  async getUsers(userIDs: string[]) {
+  /**
+   * Gets a list of users from Cognito user pool. If no user ids are provided, will return
+   * all users by default.
+   *
+   * @param userIDs optional list of user ids to search for
+   * @param roles optional list of roles to search for
+   * @returns
+   */
+  async getUsers(userIDs?: string[], roles?: string[]) {
+    if (!userIDs) {
+      return await this.cognitoWrapper.getUsers();
+    }
+
     return await this.cognitoWrapper.getUsersByIds(userIDs);
   }
 }

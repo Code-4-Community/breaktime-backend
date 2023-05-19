@@ -4,10 +4,12 @@ import {WriteEntryToTable, UserTimesheets} from '../dynamodb';
 
 import TokenClient from './cognito/cognito.keyparser'
 import { TimeSheetSchema } from 'src/db/schemas/Timesheet';
+import * as frontendTimesheetSchemas from 'src/db/schemas/Timesheet'
 import { RolesGuard } from 'src/utils/guards/roles.guard';
 
 import { UploadTimesheet } from 'src/db/uploads/UploadTimesheet';
 import { TimesheetUpdateRequest } from 'src/db/schemas/UpdateTimesheet';
+import {DBToFrontend} from 'src/db/schemas/FrontendConversions'
 
 @Controller('auth')
 @UseGuards(RolesGuard)
@@ -35,15 +37,15 @@ export class AuthController {
   @Get('timesheet')
   //@Roles('breaktime-management-role')
   
-  public async grab_timesheets(@Headers() headers: any): Promise<TimeSheetSchema[]> {
+  public async grab_timesheets(@Headers() headers: any): Promise<frontendTimesheetSchemas.TimeSheetSchema[]> {
     const userId = await TokenClient.grabUserID(headers); 
 
     if (userId) {
       console.log("Fetching timesheets for user ", userId); 
       const timesheets = await UserTimesheets(userId)
-      console.log(timesheets);
-      return timesheets; 
-    }
+      //Convert to frontend equivalent and return? 
+      return DBToFrontend.convertTimesheets(timesheets); 
+    } 
     return []; 
   }
 }

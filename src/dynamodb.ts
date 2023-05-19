@@ -116,10 +116,17 @@ export async function GetCompanyData(companyID:string): Promise<CompanySchema> {
 }
 
 export async function WriteEntryToTable(table:TimeSheetSchema): Promise<Boolean> {
+  const options = {
+    removeUndefinedValues: true
+  };
+
   const params = {
     TableName: 'BreaktimeTimesheets',
-    Item: marshall(table)
+    Item: marshall(table, options), 
+    removeUndefinedValues: true, 
   }; 
+
+  
   
   try {
     //Input validation - if this fails we do not upload following this as it did not have appropriate types

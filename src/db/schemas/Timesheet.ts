@@ -6,8 +6,8 @@ import { z } from "zod";
  */
 export const NoteSchema = z.object({
   Type: z.enum(["Comment", "Report"]),
-  EntryID: z.string().uuid(), 
-  AuthorUUID: z.string().uuid(),
+  EntryID: z.string(), 
+  AuthorUUID: z.string(),
   DateTime: z.number(),
   Content: z.string(),
   State: z.enum(["Active", "Deleted"]),
@@ -17,11 +17,11 @@ export const NoteSchema = z.object({
  * Represents the database schema for a schedule shift entry, made by a supervisor or admin
  */
 export const ScheduleEntrySchema = z.object({
-  EntryID: z.string().uuid(), 
+  EntryID: z.string(), 
   Date: z.number(), 
   StartDateTime: z.number(),
   EndDateTime: z.number(),
-  AuthorUUID: z.string().uuid()
+  AuthorUUID: z.string()
 })
 
 /**
@@ -30,7 +30,7 @@ export const ScheduleEntrySchema = z.object({
 export const TimeEntrySchema = z.object({
   StartDateTime: z.number(),
   EndDateTime: z.number(),
-  AuthorUUID: z.string().uuid(),
+  AuthorUUID: z.string(),
 })
 
 
@@ -44,7 +44,7 @@ export enum CellType {
  */
 export const TimesheetEntrySchema = z.object({
   Type: z.enum([CellType.REGULAR, CellType.PTO]),
-  EntryID: z.string().uuid(), 
+  EntryID: z.string(), 
   Date: z.number(), 
   AssociateTimes: TimeEntrySchema.optional(),
   SupervisorTimes: TimeEntrySchema.optional(),
@@ -63,27 +63,30 @@ export const StatusEntryType = z.union(
   z.undefined()]); 
 
 // Status type contains the four stages of the pipeline we have defined 
-export const StatusType = z.object({
+export const TimesheetStatus = z.object({
   HoursSubmitted: StatusEntryType, 
   HoursReviewed: StatusEntryType,
   ScheduleSubmitted: StatusEntryType, 
   Finalized: StatusEntryType 
 });
 
+
+
 /**
  * Represents the database schema for a weekly timesheet
  */
 export const TimeSheetSchema = z.object({
   TimesheetID: z.number(), 
-  UserID: z.string().uuid(), 
+  UserID: z.string(), 
   StartDate: z.number(),
-  Status: StatusType,
+  Status: TimesheetStatus,
   CompanyID: z.string(), 
   HoursData: z.array(TimesheetEntrySchema).default([]), 
   ScheduleData: z.array(ScheduleEntrySchema).default([]),
   WeekNotes: z.array(NoteSchema).default([]),
 })
 
+export type TimesheetStatus = z.infer<typeof TimesheetStatus>
 export type TimeEntrySchema = z.infer<typeof TimeEntrySchema> 
 export type ScheduleEntrySchema = z.infer<typeof ScheduleEntrySchema> 
 export type NoteSchema = z.infer<typeof NoteSchema>

@@ -8,7 +8,6 @@ interface ItemsOperations {
     Insert(timesheet: TimeSheetSchema, body:InsertRequest): TimeSheetSchema 
     Delete(timesheet: TimeSheetSchema, body:DeleteRequest): TimeSheetSchema 
     Update(timesheet: TimeSheetSchema, body:UpdateRequest) : TimeSheetSchema 
-    Convert(timesheet: TimeSheetSchema, body: UpdateRequest | InsertRequest | DeleteRequest): TimeSheetSchema
 }
 
 export class ItemsDelegator {

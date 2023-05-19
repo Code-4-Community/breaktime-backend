@@ -21,6 +21,7 @@ export const StatusType = z.object({
   ScheduleSubmitted: StatusEntryType, 
   Finalized: StatusEntryType 
 });
+export type StatusType = z.infer<typeof StatusType> 
 
 export const FrontendTimeSheetSchema = z.object({
   TimesheetID: z.number(), 

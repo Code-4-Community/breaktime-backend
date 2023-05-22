@@ -19,17 +19,17 @@ export const NoteSchema = z.object({
 export const ScheduleEntrySchema = z.object({
   EntryID: z.string(), 
   Date: z.number(), 
-  StartDateTime: z.number(),
-  EndDateTime: z.number(),
-  AuthorUUID: z.string()
+  StartDateTime: z.number().optional(),
+  EndDateTime: z.number().optional(),
+  AuthorUUID: z.string() 
 })
 
 /**
  * Represents the database schema for a clockin/clockout pair in epoch
  */
 export const TimeEntrySchema = z.object({
-  StartDateTime: z.number(),
-  EndDateTime: z.number(),
+  StartDateTime: z.number().optional(),
+  EndDateTime: z.number().optional(),
   AuthorUUID: z.string(),
 })
 

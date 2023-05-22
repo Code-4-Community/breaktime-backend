@@ -57,8 +57,8 @@ export const TimesheetUpdateRequest = z.object({
         TimesheetOperations.DELETE,
         TimesheetOperations.STATUS_CHANGE, 
         TimesheetOperations.CREATE_TIMESHEET
-        ]), 
-    Payload: z.union([DeleteRequest, UpdateRequest, InsertRequest])
+        ]),  
+    Payload: z.any()
 })
 export type TimesheetUpdateRequest = z.infer<typeof TimesheetUpdateRequest>
 

@@ -21,12 +21,11 @@ export class UploadTimesheet {
             request: The request we are processing 
             userid: The user we are processing this for 
         */
-        
         //Retrieve a specified timesheet 
         const userTimesheets = await UserTimesheets(userid); 
         const selectedTimesheet = userTimesheets.filter((timesheet) => timesheet.TimesheetID === request.TimesheetID)
         if (selectedTimesheet.length == 1) {
-
+            
             var modifiedTimesheet = undefined; 
             //TODO - Mutate the respective fields to what they should be 
             switch (request.Operation) {
@@ -45,6 +44,7 @@ export class UploadTimesheet {
                     //Determine attribute we are modifying and then also convert the field from frontend to backend. 
                     modifiedTimesheet =  this.delegator.AttributeToModify(request.Payload).Update(selectedTimesheet[0],
                          frontendEntryConversions.updateConversion(request.Payload)); 
+
                     break; 
                 default: 
                     throw new Error(`Invalid operation: ${request.Operation}`); 
@@ -57,7 +57,8 @@ export class UploadTimesheet {
         } else if (selectedTimesheet.length > 1) {
             throw new Error("Multiple timesheets have the same timesheet ID for this user"); 
         } else {
-            throw new Error("No Timesheet with that ID"); 
+            return "Error! No Timesheet with that ID!"
+            // throw new Error("No Timesheet with that ID"); 
         }
     }
 }

@@ -48,12 +48,11 @@ export class frontendEntryConversions {
     }
 
     public static updateConversion(body: requestSchemas.UpdateRequest) : requestSchemas.UpdateRequest {
-        
         switch (body.Type) {
             case requestSchemas.TimesheetListItems.TABLEDATA:
+
                 const convertedKey = this.hoursDataMappings[body.Attribute].finalKey; 
                 const convertedValue = this.hoursDataMappings[body.Attribute].conversionFn(body.Data) 
-
                 return {
                     ...body, 
                     Attribute: convertedKey, 
@@ -77,7 +76,7 @@ export class frontendEntryConversions {
             AssociateTimes: this.toDBRowEntry(row.Associate), 
             SupervisorTimes: this.toDBRowEntry(row.Supervisor), 
             AdminTimes: this.toDBRowEntry(row.Admin), 
-            Note: row.Comment.map((comment) => this.toDBNote(comment))
+            Note: row.Comment?.map((comment) => this.toDBNote(comment))
         }); 
     }
 

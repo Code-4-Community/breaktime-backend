@@ -1,7 +1,8 @@
 import {TimeSheetSchema, TimesheetEntrySchema, ScheduleEntrySchema, NoteSchema} from '../schemas/Timesheet'
-import {UpdateRequest, InsertRequest, DeleteRequest} from '../schemas/UpdateTimesheet'
-import {TimesheetListItems} from '../schemas/UpdateTimesheet'
-import moment from 'moment-timezone';
+import {UpdateRequest, InsertRequest, DeleteRequest, TimesheetListItems} from '../schemas/UpdateTimesheet'
+import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
+//Not sure why but only works if imported like this :| 
+const moment = require('moment-timezone'); 
 
 
 interface ItemsOperations {
@@ -82,6 +83,9 @@ export class HoursDataOperations implements ItemsOperations {
     }
 
     public  Update(timesheet: TimeSheetSchema, body:UpdateRequest)  {
+        if (timesheet.HoursData?.filter((row) => row.EntryID === body.Id).length === 0) {
+            throw new Error("Could not find a row with that ID"); 
+        }
         return {
             ...timesheet, 
             HoursData: timesheet.HoursData.map((row) => {
@@ -147,6 +151,7 @@ export class ScheduledDataOperations implements ItemsOperations {
     }
 
     public  Update(timesheet: TimeSheetSchema, body:UpdateRequest)  {
+        //TODO - Add in functionality to trigger insert instead of update if ID does not yet exist
         return {
             ...timesheet, 
             ScheduleData: timesheet.ScheduleData.map((row) => {
@@ -181,6 +186,8 @@ export class NotesOperations implements ItemsOperations {
     }
 
     public  Update(timesheet: TimeSheetSchema, body:UpdateRequest)   {
+        //TODO - Add in functionality to trigger insert instead of update if ID does not yet exist
+
         return {
             ...timesheet,
             WeekNotes: timesheet.WeekNotes.map((note) => {

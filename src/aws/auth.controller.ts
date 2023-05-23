@@ -7,11 +7,11 @@ import { TimeSheetSchema } from 'src/db/schemas/Timesheet';
 import * as frontendTimesheetSchemas from 'src/db/schemas/Timesheet'
 import { RolesGuard } from 'src/utils/guards/roles.guard';
 
-import { UploadTimesheet } from 'src/db/timesheeets/UploadTimesheet';
+import { UploadTimesheet } from 'src/db/timesheets/UploadTimesheet';
 import { TimesheetUpdateRequest } from 'src/db/schemas/UpdateTimesheet';
 import {DBToFrontend} from 'src/db/schemas/FrontendConversions'
 
-import { Formatter } from 'src/db/timesheeets/Formatter';
+import { Formatter } from 'src/db/timesheets/Formatter';
 
 @Controller('auth')
 @UseGuards(RolesGuard)
@@ -44,7 +44,6 @@ export class AuthController {
 
     if (userId) {
       console.log("Fetching timesheets for user ", userId); 
-
       return Formatter.fetch_user_timesheets(userId); 
      
     } 

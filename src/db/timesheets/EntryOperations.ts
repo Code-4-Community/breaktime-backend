@@ -18,13 +18,14 @@ class KeyPairMappings  {
 }
 
 export class frontendEntryConversions {
+    //NOTE: The key in the dictionary must match frontend key name 
     private static hoursDataMappings = {
         Type: new KeyPairMappings("Type", "Type", frontendEntryConversions.toDBType), 
         Associate: new KeyPairMappings("Associate", "AssociateTimes", frontendEntryConversions.toDBRowEntry),
         Supervisor: new KeyPairMappings("Supervisor", "SupervisorTimes", frontendEntryConversions.toDBRowEntry), 
         Admin: new KeyPairMappings("Admin", "AdminTimes", frontendEntryConversions.toDBRowEntry),
-        Note: new KeyPairMappings("Comment", "Note", frontendEntryConversions.toDBNote)
-    }
+        Comment: new KeyPairMappings("Comment", "Note", frontendEntryConversions.toDBNotes)
+    } 
   
 
     public static insertConversion(body: requestSchemas.InsertRequest) : requestSchemas.InsertRequest {
@@ -102,14 +103,24 @@ export class frontendEntryConversions {
         }
     }
 
-    private static toDBNote(comment: frontendRowTypes.CommentSchema | undefined): dbTimesheetTypes.NoteSchema {
+
+    private static toDBNotes(comments: frontendRowTypes.CommentSchema[] | undefined): dbTimesheetTypes.NoteSchema[] | undefined {
+        if (comments !== undefined) {
+            return comments.map((comment) => frontendEntryConversions.toDBNote(comment))
+            
+        }  
+        return undefined;  
+    }
+
+    private static toDBNote(comment: frontendRowTypes.CommentSchema | undefined): dbTimesheetTypes.NoteSchema | undefined {
         if (comment !== undefined) {
             return dbTimesheetTypes.NoteSchema.parse({
                 Type: comment.Type, 
+                EntryID: comment.UUID, 
                 AuthorUUID: comment.AuthorID, 
                 DateTime: comment.Timestamp, 
                 Content: comment.Content, 
-                State: comment.State
+                State: comment.State 
             }); 
         }
         return undefined; 

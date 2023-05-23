@@ -19,7 +19,7 @@ export class DBToFrontend {
             CompanyID: timesheet.CompanyID, 
             TableData: this.toFrontendRows(timesheet.HoursData),
             ScheduleTableData: this.toFrontendScheduleData(timesheet.ScheduleData), 
-            WeekNotes: this.toFrontendComment(timesheet.WeekNotes) 
+            WeekNotes: this.toFrontendComments(timesheet.WeekNotes) 
         }); 
     }
 
@@ -44,7 +44,7 @@ export class DBToFrontend {
                 Associate: this.toFrontendRowEntry(row.AssociateTimes), 
                 Supervisor: this.toFrontendRowEntry(row.SupervisorTimes), 
                 Admin: this.toFrontendRowEntry(row.AdminTimes), 
-                Comment: this.toFrontendComment(row.Note)
+                Comment: this.toFrontendComments(row.Note)
             }); 
         })
     }
@@ -76,7 +76,7 @@ export class DBToFrontend {
         })
     }
 
-    private static toFrontendComment(comments: dbTypes.NoteSchema[]): frontendRowTypes.CommentSchema[] {
+    private static toFrontendComments(comments: dbTypes.NoteSchema[]): frontendRowTypes.CommentSchema[] {
         if (comments === undefined) {
             return []; 
         }

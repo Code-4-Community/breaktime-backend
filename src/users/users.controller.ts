@@ -40,12 +40,16 @@ export class UsersController {
     @Headers() headers: any,
     @User() user: ValidatedUser,
     @Query("companyIds") companyIds?: string[],
-    @Query("roles") roles: string[] = ["associate"]
+    @Query("roles") roles: string[] = ["associate"],
+    @Query("userIds") userIds: string[] = []
   ): Promise<CompanyUsers[]> {
     if (!user.sub) {
-      throw new HttpException('No authorized user found', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(
+        "No authorized user found",
+        HttpStatus.UNAUTHORIZED
+      );
     }
 
-    return this.userService.getUsers(user, companyIds ?? [], roles);
+    return this.userService.getUsers(user, companyIds ?? [], roles, userIds);
   }
 }

@@ -13,60 +13,59 @@ import { error } from "console";
 export class UserService {
   constructor(private cognitoService: CognitoService) {}
 
+  /*
+    associates: should be able to get data for supervisors in their company and admins, but no one else
+    supervisors: should be able to get data for admins and all users in their company
+    admins: unrestricted
+  */
   async getUsers(
     user: ValidatedUser,
     companyIds: string[],
-    searchRoles: string[]
+    searchRoles: string[],
+    userIds: string[]
   ): Promise<CompanyUsers[]> {
-    const companyUserList: CompanyUsers[] = [];
-
-    const userSearch = AUserSearch.createUserSearch(
-      searchRoles,
-      companyIds,
-      user
-    );
-
-    userSearch.VerifyCompanies();
-    userSearch.GetUsers();
-
     // Determine what primary role should be used when searching, i.e. what permissions should take precedence
-    let primaryUserRole: CognitoRoles;
+    let companyUserList: CompanyUsers[];
     if (user.groups.includes(CognitoRoles.ADMIN)) {
-      primaryUserRole = CognitoRoles.ADMIN;
+      // TODO: return this.getUsersForAdmin();
     } else if (user.groups.includes(CognitoRoles.SUPERVISOR)) {
-      primaryUserRole = CognitoRoles.SUPERVISOR;
+      companyUserList = await this.getUsersForSupervisor(
+        user,
+        companyIds,
+        searchRoles
+      );
     } else if (user.groups.includes(CognitoRoles.ASSOCIATE)) {
-      primaryUserRole = CognitoRoles.ASSOCIATE;
+      companyUserList = await this.getUsersForAssociate(
+        user,
+        companyIds,
+        searchRoles
+      );
     } else {
       throw new HttpException(
         "No valid groups found for user",
         HttpStatus.UNAUTHORIZED
       );
     }
+    return companyUserList;
+  }
 
-    // Determine companies to search for
-    /*
-    associates: should be able to get data for supervisors in their company and admins, but no one else
-    supervisors: should be able to get data for admins and all users in their company
-    admins: unrestricted
-    */
-    if (primaryUserRole != CognitoRoles.ADMIN) {
-      if (companyIds === undefined || companyIds.length === 0) {
-        if (primaryUserRole === CognitoRoles.SUPERVISOR) {
-          companyIds = (await GetCompaniesForUser(user.sub))
-            .SupervisorCompanyIDs;
-        } else if (primaryUserRole === CognitoRoles.ASSOCIATE) {
-          companyIds = (await GetCompaniesForUser(user.sub))
-            .AssociateCompanyIDs;
-        }
-      } else {
-        this.verifyAllowedCompanies(companyIds, user);
-      }
+  // TODO: this will need to do mapping to company data
+  async getUsersForAdmin() {
+    return this.getAllUsersFromCognito();
+  }
+
+  async getUsersForAssociate(
+    user: ValidatedUser,
+    companyIds: string[],
+    searchRoles: string[]
+  ) {
+    if (companyIds != undefined && companyIds.length > 0) {
+      this.verifyAllowedCompanies(companyIds, user);
+    } else {
+      companyIds = (await GetCompaniesForUser(user.sub)).AssociateCompanyIDs;
     }
 
-    // get all users associated with companyId(s)
-    // If admin and companyIds is empty, get everything
-
+    const companyUserList: CompanyUsers[] = [];
     for (const companyId of companyIds) {
       const companyUserData = await this.getCompanyUserData(
         companyId,
@@ -75,12 +74,32 @@ export class UserService {
       companyUserList.push(companyUserData);
     }
 
-    // If admin data is requested
-    if (searchRoles.includes("admin")) {
-      
+    // TODO : We may want to return a 'basic' version of the user data available to associates, like not returning fields such
+    // as email address, etc.
+
+    return companyUserList;
+  }
+
+  async getUsersForSupervisor(
+    user: ValidatedUser,
+    companyIds: string[],
+    searchRoles: string[]
+  ) {
+    if (companyIds != undefined && companyIds.length > 0) {
+      this.verifyAllowedCompanies(companyIds, user);
+    } else {
+      companyIds = (await GetCompaniesForUser(user.sub)).SupervisorCompanyIDs;
     }
 
-    // return company array
+    const companyUserList: CompanyUsers[] = [];
+    for (const companyId of companyIds) {
+      const companyUserData = await this.getCompanyUserData(
+        companyId,
+        searchRoles
+      );
+      companyUserList.push(companyUserData);
+    }
+
     return companyUserList;
   }
 
@@ -199,108 +218,31 @@ export class UserService {
   }
 }
 
+// TODO: To have cleaner code above, we should switch to a class that can act as a filter for the Cognito user search,
+// and we can build the search filter differently for different requirements and different requesters
+class UserSearchFilter {
+  private userIds: string[];
+  private roles: CognitoRoles[];
+  private basicUserInfo: boolean = false;
+}
+
+/**
+ * Custom filter class
+ */
+class UserSearchFilterBuilder {}
+
 export type CompanyUsers = {
   CompanyID: string;
   Associates?: UserModel[];
   Supervisors?: UserModel[];
 };
 
-// TODO: come up with a better name for this, maybe something like ScopedUserSearch
-// This is a functional class that represents the different ways to process getting users
-// for different roles (admin, supervisor, or associate)
-abstract class AUserSearch {
-  private _searchUserIds: string[];
-  private _searchCompanyIds: string[];
-  private _user: ValidatedUser;
-
-  constructor(
-    private searchUserIds: string[],
-    private searchCompanyIds: string[],
-    private user: ValidatedUser
-  ) {
-    this._searchUserIds = searchUserIds;
-    this._searchCompanyIds = searchCompanyIds;
-    this._user = user;
-  }
-
-  abstract UserDtoMapper(user: CognitoUser): UserModel;
-  abstract VerifyCompanies();
-  abstract GetUsers();
-
-  // factory method to create the correct type of processing user
-  static createUserSearch(
-    searchUserIds: string[],
-    searchCompanyIds: string[],
-    user: ValidatedUser
-  ): AUserSearch {
-    if (user.groups.includes(CognitoRoles.ADMIN)) {
-      return new AdminProcessingUser(searchUserIds, searchCompanyIds, user);
-    } else if (user.groups.includes(CognitoRoles.SUPERVISOR)) {
-      return new SupervisorProcessingUser(
-        searchUserIds,
-        searchCompanyIds,
-        user
-      );
-    } else if (user.groups.includes(CognitoRoles.ASSOCIATE)) {
-      return new AssociateProcessingUser(searchUserIds, searchCompanyIds, user);
-    }
-    throw error("No valid groups found for user.");
-  }
-}
-
-class AdminProcessingUser extends AUserSearch {
-  UserDtoMapper(user: {
-    Attributes?: { Name?: string; Value?: string }[];
-    Enabled?: boolean;
-    UserCreateDate?: Date;
-    UserLastModifiedDate?: Date;
-    UserStatus?: string;
-    Username?: string;
-  }): UserModel {
-    throw new Error("Method not implemented.");
-  }
-  VerifyCompanies() {
-    throw new Error("Method not implemented.");
-  }
-  GetUsers() {
-    throw new Error("Method not implemented.");
-  }
-}
-
-class SupervisorProcessingUser extends AUserSearch {
-  UserDtoMapper(user: {
-    Attributes?: { Name?: string; Value?: string }[];
-    Enabled?: boolean;
-    UserCreateDate?: Date;
-    UserLastModifiedDate?: Date;
-    UserStatus?: string;
-    Username?: string;
-  }): UserModel {
-    throw new Error("Method not implemented.");
-  }
-  VerifyCompanies() {
-    throw new Error("Method not implemented.");
-  }
-  GetUsers() {
-    throw new Error("Method not implemented.");
-  }
-}
-
-class AssociateProcessingUser extends AUserSearch {
-  UserDtoMapper(user: {
-    Attributes?: { Name?: string; Value?: string }[];
-    Enabled?: boolean;
-    UserCreateDate?: Date;
-    UserLastModifiedDate?: Date;
-    UserStatus?: string;
-    Username?: string;
-  }): UserModel {
-    throw new Error("Method not implemented.");
-  }
-  VerifyCompanies() {
-    throw new Error("Method not implemented.");
-  }
-  GetUsers() {
-    throw new Error("Method not implemented.");
-  }
-}
+/**
+ * Represents the
+ */
+export type UserSearchData = {
+  user: ValidatedUser;
+  companyIds?: string[];
+  searchRoles?: string[];
+  userIds?: string[];
+};

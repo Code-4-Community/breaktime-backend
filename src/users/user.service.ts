@@ -32,7 +32,8 @@ export class UserService {
       companyUserList = await this.getUsersForSupervisor(
         user,
         companyIds,
-        searchRoles
+        searchRoles,
+        userIds
       );
     } else if (user.groups.includes(CognitoRoles.ASSOCIATE)) {
       companyUserList = await this.getUsersForAssociate(
@@ -51,7 +52,7 @@ export class UserService {
 
   // TODO: this will need to do mapping to company data
   async getUsersForAdmin() {
-    return this.getAllUsersFromCognito();
+    return this.getAllUsers();
   }
 
   async getUsersForAssociate(
@@ -83,14 +84,24 @@ export class UserService {
   async getUsersForSupervisor(
     user: ValidatedUser,
     companyIds: string[],
-    searchRoles: string[]
+    searchRoles: string[],
+    userIds: string[]
   ) {
     if (companyIds != undefined && companyIds.length > 0) {
       this.verifyAllowedCompanies(companyIds, user);
     } else {
       companyIds = (await GetCompaniesForUser(user.sub)).SupervisorCompanyIDs;
     }
+    // Schema for return object:
 
+    /*
+    {
+    Admins: ["userId1', "userId2"...],
+    CompanyUserData: [CompanyId: { Associates: [ "userId3, "userId1"], Supervisors: ["userId4"] }, ... ]
+    Users:
+    [ {userId: userObject} ]
+    }
+    */
     const companyUserList: CompanyUsers[] = [];
     for (const companyId of companyIds) {
       const companyUserData = await this.getCompanyUserData(
@@ -100,32 +111,71 @@ export class UserService {
       companyUserList.push(companyUserData);
     }
 
+    // TODO: getAllAdmins
+
     return companyUserList;
   }
 
+  async getUsersByIds(
+    requester: ValidatedUser,
+    userIds: string[]
+  ): Promise<UserModel[]> {
+    // get all cognito data for users
+    const cognitoUsers = await this.getCognitoUsersByIds(userIds);
+
+    // validate that the requested user is either an admin, or that all userids are in their company/are admins
+    // TODO
+
+    // get the company data for all users, and merge it into the existing cognito data
+    cognitoUsers.forEach(async (user) => {
+      const userCompanyData = await GetCompaniesForUser(user.userID);
+      user.associateCompanyIds = userCompanyData.AssociateCompanyIDs;
+      user.supervisorCompanyIds = userCompanyData.SupervisorCompanyIDs;
+    });
+
+    return cognitoUsers;
+  }
+
   /**
-   * TODO
-   * @returns
+   * Returns a list of all user data from Cognito user pool.
    */
-  async getAllUsersFromCognito(): Promise<UserModel[]> {
+  async getAllUsers(): Promise<UserModel[]> {
     const users = await this.cognitoService.getUsers();
     return users.map((user) => UserService.convertClientToModelUser(user));
   }
 
+  async getAllAdmins(): Promise<UserModel[]> {
+    // TODO : add to cognito service something that calls ListUsersInGroup
+    return [];
+  }
+
   /**
-   * TODO
-   * @param userIDs
-   * @returns
+   * Returns a list of user data from Cognito user pool, searching only for the given list of user ids.
    */
-  async getUsersFromCognito(userIds: string[]): Promise<UserModel[]> {
+  private async getCognitoUsersByIds(userIds: string[]): Promise<UserModel[]> {
     try {
       // TODO: this filtering might be better in the cognito service class, depending on if we expect to use the functionality elsewhere
-      const users = await this.cognitoService.getUsers();
-      return users
-        .filter((user) => userIds.includes(user.Attributes["sub"]))
-        .map((user) => UserService.convertClientToModelUser(user));
+      const users = await this.cognitoService.getUsers(userIds);
+      return users.map((user) => UserService.convertClientToModelUser(user));
     } catch (err) {
       console.log(err);
+      return [];
+    }
+  }
+
+  /**
+   * Gets a list of all users, both associates and supervisors, at a given company.
+   * @param companyId
+   * @returns
+   */
+  async getUsersInCompany(companyId: string): Promise<String[]> {
+    try {
+      const companyData = await GetCompanyData(companyId);
+      if (companyData == null) {
+        return [];
+      }
+      return companyData.AssociateIDs.concat(companyData.SupervisorIDs);
+    } catch {
       return [];
     }
   }
@@ -149,12 +199,12 @@ export class UserService {
     let companyUserData: CompanyUsers = { CompanyID: companyId };
 
     if (searchRoles.includes("associate")) {
-      associateData = await this.getUsersFromCognito(companyData.AssociateIDs);
+      associateData = await this.getCognitoUsersByIds(companyData.AssociateIDs);
       companyUserData.Associates = associateData;
     }
 
     if (searchRoles.includes("supervisor")) {
-      supervisorData = await this.getUsersFromCognito(
+      supervisorData = await this.getCognitoUsersByIds(
         companyData.SupervisorIDs
       );
       companyUserData.Supervisors = supervisorData;
@@ -163,10 +213,12 @@ export class UserService {
   }
 
   /**
-   * TODO
-   * @param companyIds
-   * @param user
-   * @returns
+   * Verify that the given user can access the company user data for the list of company IDs. This means they are either:
+   * - an admin user
+   * - an associate or supervisor user who belongs to the companies requested, as per records in Dynamo
+   * @param companyIds the list of company IDs to verify access to
+   * @param user the user who made the request
+   * @throws 401 Unauthorized if the user attempts to access company user data that they don't have access to.
    */
   private async verifyAllowedCompanies(
     companyIds: string[],
@@ -217,19 +269,6 @@ export class UserService {
     };
   }
 }
-
-// TODO: To have cleaner code above, we should switch to a class that can act as a filter for the Cognito user search,
-// and we can build the search filter differently for different requirements and different requesters
-class UserSearchFilter {
-  private userIds: string[];
-  private roles: CognitoRoles[];
-  private basicUserInfo: boolean = false;
-}
-
-/**
- * Custom filter class
- */
-class UserSearchFilterBuilder {}
 
 export type CompanyUsers = {
   CompanyID: string;

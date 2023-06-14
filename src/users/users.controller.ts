@@ -52,4 +52,20 @@ export class UsersController {
 
     return this.userService.getUsers(user, companyIds ?? [], roles, userIds);
   }
+
+  @Get("usersById")
+  public async getUsersByIds(
+    @Headers() headers: any,
+    @User() requester: ValidatedUser,
+    @Query("userIds") userIds: string[] = []
+  ): Promise<UserModel[]> {
+    if (!requester.sub) {
+      throw new HttpException(
+        "No authorized user found",
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+
+    return this.userService.getUsersByIds(requester, userIds);
+  }
 }

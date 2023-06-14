@@ -122,18 +122,34 @@ export class UserService {
   ): Promise<UserModel[]> {
     // get all cognito data for users
     const cognitoUsers = await this.getCognitoUsersByIds(userIds);
+    console.log(cognitoUsers);
 
     // validate that the requested user is either an admin, or that all userids are in their company/are admins
     // TODO
 
     // get the company data for all users, and merge it into the existing cognito data
-    cognitoUsers.forEach(async (user) => {
+    for (const user of cognitoUsers) {
+      await this.updateUserWithCompanyData(user);
+    }
+
+    return cognitoUsers;
+  }
+
+  /**
+   * Updates the given user object with any company ids they belong to. If the user doesn't belong to any companies,
+   * defaults their company id attributes to empty lists.
+   */
+  private async updateUserWithCompanyData(user: UserModel) {
+    try {
+      // try to find user company data if it exists
       const userCompanyData = await GetCompaniesForUser(user.userID);
       user.associateCompanyIds = userCompanyData.AssociateCompanyIDs;
       user.supervisorCompanyIds = userCompanyData.SupervisorCompanyIDs;
-    });
-
-    return cognitoUsers;
+    } catch (error) {
+      console.log("Issue retrieving company data for user " + user.userID);
+      user.associateCompanyIds = [];
+      user.supervisorCompanyIds = [];
+    }
   }
 
   /**
@@ -154,7 +170,6 @@ export class UserService {
    */
   private async getCognitoUsersByIds(userIds: string[]): Promise<UserModel[]> {
     try {
-      // TODO: this filtering might be better in the cognito service class, depending on if we expect to use the functionality elsewhere
       const users = await this.cognitoService.getUsers(userIds);
       return users.map((user) => UserService.convertClientToModelUser(user));
     } catch (err) {

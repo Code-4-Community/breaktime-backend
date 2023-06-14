@@ -68,7 +68,11 @@ export class CognitoWrapper {
       }
 
       return userData
-        .filter((user) => userIDs.includes(user.Attributes["sub"]))
+        .filter((user) =>
+          userIDs.includes(
+            user.Attributes.find((attribute) => (attribute.Name = "sub")).Value
+          )
+        )
         .map((user) => CognitoUser.parse(user));
     } catch (error) {
       console.log(error);

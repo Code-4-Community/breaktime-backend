@@ -56,31 +56,20 @@ export class CognitoWrapper {
   }
 
   /**
-   * Gets users that match the userIds passed in by making a separate request for each userId to Cognito.
+   * Gets users from Cognito that match the userIds passed in.
    */
   async getUsersByIds(userIDs: string[]) {
-    // Reference : https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-cognito-identity-provider/
     try {
       // Create list of users to be returned
-      const users: CognitoUser[] = [];
+      const userData = await this.listUsers(this.userPoolId);
 
-      // TODO : There is a read limit of 30 calls per seconds for ListUsers, will need to do throttling here if over 30.
-      // May also want to eventually do re-calls with exponential backoff
-      for (const userID of userIDs) {
-        var filter = `sub = \"${userID}\"`;
-        var limit = 1;
-
-        const data = await this.listUsers(this.userPoolId, filter, limit);
-
-        console.log(data);
-        if (data == null || data.length === 0) {
-          throw new Error(`User could not be found: ${userID}`);
-        }
-
-        users.push(CognitoUser.parse(data[0]));
+      if (userData == null) {
+        throw new Error("Issue with retrieving user data from user pool.");
       }
 
-      return users;
+      return userData
+        .filter((user) => userIDs.includes(user.Attributes["sub"]))
+        .map((user) => CognitoUser.parse(user));
     } catch (error) {
       console.log(error);
       return [];

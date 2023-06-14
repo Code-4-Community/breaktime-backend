@@ -8,6 +8,8 @@ export type UserModel = {
   lastName: string;
   userID: string;
   userEmail: string;
+  associateCompanyIds?: string[];
+  supervisorCompanyIds?: string[];
 };
 
 // alt

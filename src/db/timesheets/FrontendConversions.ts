@@ -1,4 +1,4 @@
-import * as dbTypes from './Timesheet'
+import * as dbTypes from '../schemas/Timesheet'
 import * as frontendRowTypes from '../frontend/RowSchema'
 import * as frontendTimesheetTypes from '../frontend/TimesheetSchema'
 export class DBToFrontend {
@@ -6,10 +6,12 @@ export class DBToFrontend {
         Mapper from converting from a Database backend timesheet to a frontend one 
     */ 
 
+    // Converts a list of backend timesheets to frontend ones 
     public static convertTimesheets(timesheets: dbTypes.TimeSheetSchema[]) : frontendTimesheetTypes.FrontendTimeSheetSchema[] {
         return timesheets.map((timesheet) => this.toFrontendTimesheet(timesheet)); 
     }
 
+    // Converts a singular backend timesheet to a frontend one 
     public static toFrontendTimesheet(timesheet: dbTypes.TimeSheetSchema): frontendTimesheetTypes.FrontendTimeSheetSchema {
         return frontendTimesheetTypes.FrontendTimeSheetSchema.parse({
             TimesheetID: timesheet.TimesheetID, 
@@ -23,6 +25,7 @@ export class DBToFrontend {
         }); 
     }
 
+    // Converts a backend status to a frontend one 
     private static toFrontendStatus(status: dbTypes.TimesheetStatus): frontendTimesheetTypes.StatusType {
         return frontendTimesheetTypes.StatusType.parse({
             HoursSubmitted: status.HoursSubmitted, 
@@ -32,6 +35,7 @@ export class DBToFrontend {
         })
     } 
 
+    //Converts a backend row to a frontend one 
     private static toFrontendRows(rows: dbTypes.TimesheetEntrySchema[]): frontendRowTypes.RowSchema[] {
         if (rows === undefined) {
             return []; 
@@ -48,6 +52,8 @@ export class DBToFrontend {
             }); 
         })
     }
+
+    //Converts the backend schedule data to the frontend equivalent. 
     private static toFrontendScheduleData(rows: dbTypes.ScheduleEntrySchema[]): frontendRowTypes.ScheduledRowSchema[] {
         if (rows === undefined) {
             return []; 
@@ -65,6 +71,7 @@ export class DBToFrontend {
         })
     }
 
+    //Converts a backend row entry to a frontend one
     private static toFrontendRowEntry(row: dbTypes.TimeEntrySchema): frontendRowTypes.TimeRowEntry {
         if (row === undefined) {
             return undefined; 
@@ -76,6 +83,7 @@ export class DBToFrontend {
         })
     }
 
+    //Converts a list of backend comments to frontend equivalents. 
     private static toFrontendComments(comments: dbTypes.NoteSchema[]): frontendRowTypes.CommentSchema[] {
         if (comments === undefined) {
             return []; 

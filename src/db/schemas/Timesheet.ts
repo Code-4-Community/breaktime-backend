@@ -34,6 +34,11 @@ export const TimeEntrySchema = z.object({
 })
 
 
+/* 
+  Supported type of cells for each row in a timesheet 
+    @REGULAR - a regular cell
+    @PTO - Cell signifying paid time off (PTO) 
+*/
 export enum CellType {
   REGULAR = "Regular", 
   PTO = "PTO"

@@ -1,4 +1,4 @@
-import { DBToFrontend } from "../schemas/FrontendConversions";
+import { DBToFrontend } from "./FrontendConversions";
 import { FrontendTimeSheetSchema } from "../frontend/TimesheetSchema";
 import { TimesheetUpdateRequest, TimesheetOperations } from "../schemas/UpdateTimesheet";
 
@@ -15,8 +15,8 @@ export class UploadTimesheet {
 
     public async updateTimesheet(request: TimesheetUpdateRequest, userid: string): Promise<string> {
         /*
-            Provided a request to update a timesheet, processes and returns if it was 
-            able to successfully update it or false if it was unsuccessful 
+            Provided a request to update a timesheet, processes the request and then 
+            return a response indicating success or failure. 
 
             request: The request we are processing 
             userid: The user we are processing this for 

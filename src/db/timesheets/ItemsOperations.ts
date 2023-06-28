@@ -4,13 +4,22 @@ import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
 //Not sure why but only works if imported like this :| 
 const moment = require('moment-timezone'); 
 
-
+/* Interface holding all operations available for a field in the timesheet that should support 
+    updates, inserts, and deletions. 
+*/
 interface ItemsOperations {
+    // Insert into the list of items 
     Insert(timesheet: TimeSheetSchema, body:InsertRequest): TimeSheetSchema 
+    // Delete a specific item from the list of items 
     Delete(timesheet: TimeSheetSchema, body:DeleteRequest): TimeSheetSchema 
+    // Update a specific item in the list of items 
     Update(timesheet: TimeSheetSchema, body:UpdateRequest) : TimeSheetSchema 
 }
 
+/*
+    Delegator for delegating to the correct Type (Field) on the timesheet for processing for. 
+    I.e. when we want to update a piece of the table data, go to the implementation of this interface above for table data. 
+*/
 export class ItemsDelegator {
     // Class to determine what field of the timesheet we are performing item operations on 
     tableData = new HoursDataOperations() 
@@ -32,6 +41,10 @@ export class ItemsDelegator {
 }
 
 
+/*
+    Implementation for processing operations on the TableData (HoursData) of our timesheet 
+    i.e. the user entered rows of the time they worked. 
+*/
 export class HoursDataOperations implements ItemsOperations {
     public  Insert(timesheet: TimeSheetSchema, body:InsertRequest)  {
         const data = timesheet.HoursData; 
@@ -102,6 +115,7 @@ export class HoursDataOperations implements ItemsOperations {
     }
 }
 
+// Class for operations on the schedule data field - i.e. the supervisor reported hours they should have worked. 
 export class ScheduledDataOperations implements ItemsOperations {
     public  Insert(timesheet: TimeSheetSchema, body:InsertRequest)  {
         const data = timesheet.ScheduleData; 
@@ -168,6 +182,7 @@ export class ScheduledDataOperations implements ItemsOperations {
     }
 }
 
+// Operations on the weekly notes on the timesheet - i.e. comments relating to the entire timesheet / specific day worked. 
 export class NotesOperations implements ItemsOperations {
     public  Insert(timesheet: TimeSheetSchema, body:InsertRequest)  {
         return {

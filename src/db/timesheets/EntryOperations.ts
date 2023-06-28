@@ -4,6 +4,12 @@ import * as requestSchemas from '../schemas/UpdateTimesheet'
 import {FrontendTimeSheetSchema} from '../frontend/TimesheetSchema'
 import * as frontendTypes from '../frontend/CellTypes'
 
+/*
+    Code for converting from the frontend to our backend equivalents. Useful for actually processing this to be stored in our database / align with what our 
+    backend expects to see in this data. 
+*/
+
+
 // Class to represent the mappings from a frontend key to a backend key alongside a conversion fn for the data
 class KeyPairMappings  {
     originalKey:string; 
@@ -18,7 +24,7 @@ class KeyPairMappings  {
 }
 
 export class frontendEntryConversions {
-    //NOTE: The key in the dictionary must match frontend key name 
+    //NOTE: The key in the dictionary must match frontend key name as this is how we automatically convert keys  
     private static hoursDataMappings = {
         Type: new KeyPairMappings("Type", "Type", frontendEntryConversions.toDBType), 
         Associate: new KeyPairMappings("Associate", "AssociateTimes", frontendEntryConversions.toDBRowEntry),
@@ -28,8 +34,11 @@ export class frontendEntryConversions {
     } 
   
 
+    /*
+        Delegate that converts the item we are inserting to its database equivalent so that it can actually exist on the table 
+    */
     public static insertConversion(body: requestSchemas.InsertRequest) : requestSchemas.InsertRequest {
-        //TODO - figure out wtf im doing here 
+        
         switch (body.Type) {
             case requestSchemas.TimesheetListItems.TABLEDATA:
                 return {
@@ -48,6 +57,9 @@ export class frontendEntryConversions {
         }
     }
 
+     /*
+        Delegate that converts the item we are updating to its database equivalent so that it can actually exist on the table 
+    */
     public static updateConversion(body: requestSchemas.UpdateRequest) : requestSchemas.UpdateRequest {
         switch (body.Type) {
             case requestSchemas.TimesheetListItems.TABLEDATA:
@@ -68,7 +80,9 @@ export class frontendEntryConversions {
         }
     } 
     
-    
+    /*
+        Converts a row in our timesheet to our database equivalent from frontend. 
+    */
     private static toDBRow(row: frontendRowTypes.RowSchema): dbTimesheetTypes.TimesheetEntrySchema { 
         return dbTimesheetTypes.TimesheetEntrySchema.parse({
             Type: this.toDBType(row.Type), 
@@ -81,6 +95,7 @@ export class frontendEntryConversions {
         }); 
     }
 
+    // Converts a timesheet entry to our database equivalent from frontend. 
     private static toDBRowEntry(row: frontendRowTypes.TimeRowEntry | undefined): dbTimesheetTypes.TimeEntrySchema | undefined{
         if (row !== undefined) {
             return dbTimesheetTypes.TimeEntrySchema.parse({
@@ -92,6 +107,7 @@ export class frontendEntryConversions {
         return undefined; 
     }
 
+    // Converts a frontend cell type to our database equivalent. 
     private static toDBType(entryType: frontendRowTypes.RowType): dbTimesheetTypes.CellType {
         switch (entryType) {
             case frontendTypes.CellType.Regular:
@@ -103,7 +119,7 @@ export class frontendEntryConversions {
         }
     }
 
-
+    // Converts from our frontend week comments to our database equivalents. 
     private static toDBNotes(comments: frontendRowTypes.CommentSchema[] | undefined): dbTimesheetTypes.NoteSchema[] | undefined {
         if (comments !== undefined) {
             return comments.map((comment) => frontendEntryConversions.toDBNote(comment))
@@ -112,6 +128,7 @@ export class frontendEntryConversions {
         return undefined;  
     }
 
+    // Converts a singular week comment / note from our frontend to database. 
     private static toDBNote(comment: frontendRowTypes.CommentSchema | undefined): dbTimesheetTypes.NoteSchema | undefined {
         if (comment !== undefined) {
             return dbTimesheetTypes.NoteSchema.parse({
@@ -126,6 +143,7 @@ export class frontendEntryConversions {
         return undefined; 
     }
 
+    // Converts from a singular frontend schedule entry to our database equivalent. 
     private static toDBSchedule(row: frontendRowTypes.ScheduledRowSchema): dbTimesheetTypes.ScheduleEntrySchema {
         return dbTimesheetTypes.ScheduleEntrySchema.parse({
             EntryID: row.UUID, 

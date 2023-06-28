@@ -4,7 +4,7 @@ import * as constants from 'src/constants'
 import { v4 as uuidv4 } from 'uuid';
 
 import {UserTimesheets, WriteEntryToTable} from 'src/dynamodb'
-import { DBToFrontend } from '../schemas/FrontendConversions';
+import { DBToFrontend } from './FrontendConversions';
 
 const moment = require('moment-timezone'); 
 
@@ -15,6 +15,7 @@ export class Formatter {
         for the user - i.e. any missing days are added, etc. 
     */
 
+    // Fetches timesheets and properly formats them to our frontend data versions. 
     public static async fetch_user_timesheets(userid: string) {
         //Grab timesheets from DB 
         var timesheets =  await UserTimesheets(userid); 
@@ -25,6 +26,7 @@ export class Formatter {
         return DBToFrontend.convertTimesheets(timesheets); 
     }
 
+    // Formats a list of backend / database timesheets to the frontend equivalents.   
     public static format(timesheets: timesheetSchemas.TimeSheetSchema[]) : timesheetSchemas.TimeSheetSchema[] {
         const updatedTimesheets =  timesheets.map((timesheet) => {
             const [updatedTimesheet, modified] =  this.validate(timesheet); 
@@ -38,7 +40,7 @@ export class Formatter {
         
     }
 
-    // Main method all other future methods delegate to / would return to 
+    // Main method all other future methods delegate to / would return to when we are processing a timesheet to convert to frontend 
     private static validate(timesheet): [timesheetSchemas.TimeSheetSchema, boolean] {
         //When more functions are introduced here, create logic to determine whether any modified it to return 
         return this.ensure_all_days(timesheet); 
@@ -46,8 +48,7 @@ export class Formatter {
 
     private static ensure_all_days(timesheet:timesheetSchemas.TimeSheetSchema): [timesheetSchemas.TimeSheetSchema, boolean] {
         /*
-            Ensures that there is a TIMESHEET_DURATION amount of rows in the timesheet, 
-            meaning that each day has an entry in the timesheet 
+            Ensures that for each day from START_DATE to START_DATE + TIMESHEET_DURATION that each day has at-least one entry 
         */
         var modifiedRows = false; 
 
@@ -80,6 +81,7 @@ export class Formatter {
         ), modifiedRows]; 
 
     }
+    //Creates an empty row in the timesheet for a specified date. 
     private static create_empty_row(date: number): timesheetSchemas.TimesheetEntrySchema {
         return timesheetSchemas.TimesheetEntrySchema.parse({
             Type: timesheetSchemas.CellType.REGULAR, 

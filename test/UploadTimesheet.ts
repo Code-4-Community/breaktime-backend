@@ -38,7 +38,7 @@ const current = moment().tz(TIMEZONE);
 const daysOfWeek = moment().tz(TIMEZONE).startOf('week'); 
 
 const timesheetToUpload = TimeSheetSchema.parse({
-    TimesheetID: 12931231, 
+    TimesheetID: Math.round(Math.random() * 1000000000), 
     UserID: UUID, 
     StartDate: moment().tz(TIMEZONE).startOf('week').day(0).unix(), 
     Status: TimesheetStatus.parse({
@@ -47,12 +47,12 @@ const timesheetToUpload = TimeSheetSchema.parse({
         ScheduleSubmitted: undefined, 
         Finalized: undefined 
     }), 
-    CompanyID: "Example Company 1", 
+    CompanyID: "Example Company 401", 
     HoursData: [
         createEntry(CellType.REGULAR, daysOfWeek.day(1).unix(), undefined, undefined), 
         createEntry(CellType.PTO, daysOfWeek.day(2).unix(), undefined, undefined), 
         createEntry(CellType.REGULAR, daysOfWeek.day(5).unix(), createTimeEntry(100, 500), undefined)
-    ], 
+    ],  
     ScheduleData: [], 
     WeekNotes: []
 })

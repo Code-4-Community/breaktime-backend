@@ -120,7 +120,7 @@ export class ScheduledDataOperations implements ItemsOperations {
     public  Insert(timesheet: TimeSheetSchema, body:InsertRequest)  {
         const data = timesheet.ScheduleData; 
         const item = ScheduleEntrySchema.parse(body.Item); 
-        // Sorting is currently only day by day based - need some way of minute by minute 
+        //TODO - Fledge out the sorting to be simplified / actually accurate on the minute by minute. Currently is only based on day
         var idx = 0; 
         for (idx; idx < data.length; idx += 1) {
             const row = data[idx]; 

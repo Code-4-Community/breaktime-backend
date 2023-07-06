@@ -16,7 +16,7 @@ export class Formatter {
     */
 
     // Fetches timesheets and properly formats them to our frontend data versions. 
-    public static async fetch_user_timesheets(userid: string) {
+    public static async fetchUserTimesheets(userid: string) {
         //Grab timesheets from DB 
         var timesheets =  await UserTimesheets(userid); 
         //Convert to Frontend equivalents and convert 
@@ -43,10 +43,10 @@ export class Formatter {
     // Main method all other future methods delegate to / would return to when we are processing a timesheet to convert to frontend 
     private static validate(timesheet): [timesheetSchemas.TimeSheetSchema, boolean] {
         //When more functions are introduced here, create logic to determine whether any modified it to return 
-        return this.ensure_all_days(timesheet); 
+        return this.ensureAllDays(timesheet); 
     }
 
-    private static ensure_all_days(timesheet:timesheetSchemas.TimeSheetSchema): [timesheetSchemas.TimeSheetSchema, boolean] {
+    private static ensureAllDays(timesheet:timesheetSchemas.TimeSheetSchema): [timesheetSchemas.TimeSheetSchema, boolean] {
         /*
             Ensures that for each day from START_DATE to START_DATE + TIMESHEET_DURATION that each day has at-least one entry 
         */
@@ -60,7 +60,7 @@ export class Formatter {
             const rowDate = moment.unix(row.Date); 
             while (rowDate.isAfter(currentDate, 'day')) {
                 modifiedRows = true; 
-                updatedRows.push(this.create_empty_row(currentDate.unix())); 
+                updatedRows.push(this.createEmptyRow(currentDate.unix())); 
                 currentDate = currentDate.add(1, 'day'); 
             }
             updatedRows.push(row); 
@@ -69,7 +69,7 @@ export class Formatter {
         // Fill in remaining daysd
         while (!currentDate.isAfter(endDate, 'day')){
             modifiedRows = true; 
-            updatedRows.push(this.create_empty_row(currentDate.unix())); 
+            updatedRows.push(this.createEmptyRow(currentDate.unix())); 
             currentDate = currentDate.add(1, 'day'); 
         }
         //Returns the updated timesheet and whether or not it was modified 
@@ -82,7 +82,7 @@ export class Formatter {
 
     }
     //Creates an empty row in the timesheet for a specified date. 
-    private static create_empty_row(date: number): timesheetSchemas.TimesheetEntrySchema {
+    private static createEmptyRow(date: number): timesheetSchemas.TimesheetEntrySchema {
         return timesheetSchemas.TimesheetEntrySchema.parse({
             Type: timesheetSchemas.CellType.REGULAR, 
             EntryID: uuidv4(), 

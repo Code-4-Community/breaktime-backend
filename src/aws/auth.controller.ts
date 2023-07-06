@@ -43,7 +43,7 @@ export class AuthController {
 
     if (userId) {
       console.log("Fetching timesheets for user ", userId); 
-      return Formatter.fetch_user_timesheets(userId); 
+      return Formatter.fetchUserTimesheets(userId); 
      
     } 
     return []; 

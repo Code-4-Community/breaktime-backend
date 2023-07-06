@@ -6,7 +6,7 @@ import { z } from "zod";
  */
 export const CognitoAttribute = z.object({
   Name: z.string(),
-  Value: z.string()
+  Value: z.string(),
 });
 
 /**

@@ -6,9 +6,7 @@ import { last } from "rxjs";
 
 @Injectable()
 export class UserService {
-  constructor(
-    private cognitoService: CognitoService,
-  ) {}
+  constructor(private cognitoService: CognitoService) {}
 
   async getUsersFromCognito(userIDs: string[]): Promise<User[]> {
     try {
@@ -19,25 +17,30 @@ export class UserService {
         console.log(user.Attributes);
       }
 
-      return users.map(user => UserService.convertClientToModelUser(user));
-
+      return users.map((user) => UserService.convertClientToModelUser(user));
     } catch (err) {
       console.log(err);
       return [];
     }
   }
 
-  static convertClientToModelUser(user: CognitoUser) : User {
-    var sub = user.Attributes.find(attribute => attribute.Name === 'sub');
-    var email = user.Attributes.find(attribute => attribute.Name === 'email');
-    var firstName = user.Attributes.find(attribute => attribute.Name === 'given_name');
-    var lastName = user.Attributes.find(attribute => attribute.Name === 'family_name');
+  static convertClientToModelUser(user: CognitoUser): User {
+    var sub = user.Attributes.find((attribute) => attribute.Name === "sub");
+    var email = user.Attributes.find((attribute) => attribute.Name === "email");
+    var firstName = user.Attributes.find(
+      (attribute) => attribute.Name === "given_name"
+    );
+    var lastName = user.Attributes.find(
+      (attribute) => attribute.Name === "family_name"
+    );
 
     // TODO : refactor into separate 'getAttribute' function so we don't repeat this code
 
-    return { firstName: firstName != null ? firstName.Value : '' , 
-            lastName: lastName != null ? lastName.Value : '', 
-            userEmail: email != null ? email.Value : '', 
-            userID: sub.Value };
+    return {
+      firstName: firstName != null ? firstName.Value : "",
+      lastName: lastName != null ? lastName.Value : "",
+      userEmail: email != null ? email.Value : "",
+      userID: sub.Value,
+    };
   }
 }

@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import * as AWS from 'aws-sdk';
-import * as dotenv from 'dotenv';
+import { Injectable } from "@nestjs/common";
+import * as AWS from "aws-sdk";
+import * as dotenv from "dotenv";
 dotenv.config();
 
 @Injectable()
@@ -15,7 +15,7 @@ export class AwsCreateUserServiceWrapper {
 
   instantiateCognitoClient(): AWS.CognitoIdentityServiceProvider {
     return new AWS.CognitoIdentityServiceProvider({
-      apiVersion: '2016-04-19',
+      apiVersion: "2016-04-19",
       region: process.env.AWS_USER_POOL_REGION,
     });
   }

@@ -1,18 +1,23 @@
-import { Controller, Get, Post, Headers , Body, UseGuards} from '@nestjs/common';
-import { AuthService } from './auth.service';
-import {WriteEntryToTable, UserTimesheets} from '../dynamodb'; 
-
+import {
+  Controller,
+  Get,
+  Post,
+  Headers,
+  Body,
+  UseGuards,
+} from "@nestjs/common";
+import { AuthService } from "./auth.service";
+import { WriteEntryToTable, UserTimesheets } from "../dynamodb";
 import TokenClient from './cognito/cognito.keyparser'
 import { TimeSheetSchema } from 'src/db/schemas/Timesheet';
 import * as frontendTimesheetSchemas from 'src/db/schemas/Timesheet'
 import { RolesGuard } from 'src/utils/guards/roles.guard';
-
 import { UploadTimesheet } from 'src/db/timesheets/UploadTimesheet';
 import { TimesheetUpdateRequest } from 'src/db/schemas/UpdateTimesheet';
-
 import { Formatter } from 'src/db/timesheets/Formatter';
 
-@Controller('auth')
+
+@Controller("auth")
 @UseGuards(RolesGuard)
 export class AuthController {
 
@@ -21,21 +26,19 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('timesheet')
-  public async upload_timesheet(@Headers() headers: any, @Body() body: TimesheetUpdateRequest): Promise<string> {
+  public async upload_timesheet(
+    @Headers() headers: any,
+    @Body() body: any
+  ): Promise<string> {
     const userId = await TokenClient.grabUserID(headers); 
-    
     if (userId) {
       console.log("Writing")
-      
       const result = this.uploadApi.updateTimesheet(body, userId); 
       //Do something with this result? 
       return "Success"; 
     }
-    return "Failure"; 
-
   }
-  
-  @Get('timesheet')
+  @Get("timesheet")
   //@Roles('breaktime-management-role')
   
   public async grab_timesheets(@Headers() headers: any): Promise<frontendTimesheetSchemas.TimeSheetSchema[]> {

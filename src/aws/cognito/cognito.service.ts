@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import * as dotenv from 'dotenv';
-import { CognitoWrapper } from './cognito.wrapper';
+import { Injectable } from "@nestjs/common";
+import * as dotenv from "dotenv";
+import { CognitoWrapper } from "./cognito.wrapper";
 
 dotenv.config();
 @Injectable()

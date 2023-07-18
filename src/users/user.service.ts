@@ -8,7 +8,7 @@ import { GetCompaniesForUser, GetCompanyData } from "src/dynamodb";
 import { CognitoRoles } from "src/aws/cognito/Roles";
 import { error } from "console";
 
-// TODO : create a custom filter class instead of this that for each user
+// TODO : create a pipeline that can take in the various search/filter/manipulation requirements.
 @Injectable()
 export class UserService {
   constructor(private cognitoService: CognitoService) {}
@@ -119,10 +119,12 @@ export class UserService {
   async getUsersByIds(
     requester: ValidatedUser,
     userIds: string[]
-  ): Promise<UserModel[]> {
+  ): Promise<[UserModel[], CompanyUserIds[]]> {
     // get all cognito data for users
     const cognitoUsers = await this.getCognitoUsersByIds(userIds);
     console.log(cognitoUsers);
+
+    const companies: Map<string, CompanyUserIds> = [];
 
     // validate that the requested user is either an admin, or that all userids are in their company/are admins
     // TODO
@@ -130,6 +132,13 @@ export class UserService {
     // get the company data for all users, and merge it into the existing cognito data
     for (const user of cognitoUsers) {
       await this.updateUserWithCompanyData(user);
+
+      for (const associateCompanyId of user.associateCompanyIds) {
+
+      }
+
+      for (const associateCompanyId of user.associateCompanyIds) {
+      }
     }
 
     return cognitoUsers;
@@ -285,14 +294,33 @@ export class UserService {
   }
 }
 
+/*
+{
+Admins: ["userId1', "userId2"...],
+CompanyUserData: [CompanyId: { Associates: [ "userId3, "userId1"], Supervisors: ["userId4"] }, ... ]
+Users:
+[ {userId: userObject} ]
+}
+*/
+export type UserSearchResult = {
+  AdminIDs: string[];
+  CompanyUserData: Map<string, CompanyUserIds>;
+  Users: Map<string, UserModel[]>;
+};
+
 export type CompanyUsers = {
   CompanyID: string;
   Associates?: UserModel[];
   Supervisors?: UserModel[];
 };
 
+export type CompanyUserIds = {
+  AssociateIds?: string[];
+  SupervisorIds?: string[];
+};
+
 /**
- * Represents the
+ * Represents the various filters/search parameters that can be passed in for a user search.
  */
 export type UserSearchData = {
   user: ValidatedUser;

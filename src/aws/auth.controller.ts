@@ -4,18 +4,19 @@ import {
   Post,
   Headers,
   Body,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { WriteEntryToTable, UserTimesheets } from "../dynamodb";
+import { WriteEntryToTable, UserTimesheets, getTimesheetsForUsersInGivenTimeFrame } from "../dynamodb";
 import TokenClient from './cognito/cognito.keyparser'
 import { TimeSheetSchema } from 'src/db/schemas/Timesheet';
 import * as frontendTimesheetSchemas from 'src/db/schemas/Timesheet'
+import { Roles } from "src/utils/decorators/roles.decorators"; // idk if this is correct
 import { RolesGuard } from 'src/utils/guards/roles.guard';
 import { UploadTimesheet } from 'src/db/timesheets/UploadTimesheet';
 import { TimesheetUpdateRequest } from 'src/db/schemas/UpdateTimesheet';
 import { Formatter } from 'src/db/timesheets/Formatter';
-
 
 @Controller("auth")
 @UseGuards(RolesGuard)
@@ -51,4 +52,23 @@ export class AuthController {
     } 
     return []; 
   }
+
+  @Get("getTimesheet")
+  @Roles("breaktime-admin", "breaktime-supervisor")
+  // supervisor/admin get the same data, just check that supervisor has access to data admin is free for all
+  public async get_timesheets(
+    @Headers() header: any,
+    @Query("userIds") userIds: string[]
+  ): Promise<any> {
+    // if supervisors dont have access to a uuid throw an error
+    // if supervisor or admin request non existent uuid throw an error
+    const res = await getTimesheetsForUsersInGivenTimeFrame
+    console.log(res);
+    return [];
+  }
 }
+
+export type uuidToTimesheetMapping = {
+  uuid: string,
+  timesheet: TimeSheetSchema
+};

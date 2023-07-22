@@ -160,3 +160,25 @@ export async function WriteEntryToTable(table:TimeSheetSchema): Promise<Boolean>
   });
   return true;
 }
+
+export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], timeframe=7) {
+  // timeframe - startdate - end date 
+  // UserID - string PageName: { S: "Home" },
+
+  const userKeys = uuids.map((uuid) =>
+    {return {UserID: {S : uuid}}}
+  )
+
+  const command = new BatchGetItemCommand({
+    RequestItems: {
+      BreaktimeTimesheets: {
+        Keys: userKeys
+      }
+    }
+  });
+
+  // get the items from DynamoDB with our query
+  const dynamoRawResult = await client.send(command);
+  
+  return dynamoRawResult;
+}

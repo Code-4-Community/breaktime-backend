@@ -161,24 +161,80 @@ export async function WriteEntryToTable(table:TimeSheetSchema): Promise<Boolean>
   return true;
 }
 
-export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], timeframe=7) {
-  // timeframe - startdate - end date 
-  // UserID - string PageName: { S: "Home" },
+export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], StartDate:number = 1, EndDate:number = StartDate + 100000000000000000000) {
 
-  const userKeys = uuids.map((uuid) =>
-    {return {UserID: {S : uuid}}}
-  )
+  if (StartDate > EndDate) {
+    throw new Error("Invalid EndDate")
+  }
 
-  const command = new BatchGetItemCommand({
-    RequestItems: {
-      BreaktimeTimesheets: {
-        Keys: userKeys
-      }
+  let result = []
+
+  for (let x in uuids) {
+    const command = new QueryCommand({
+      TableName: "BreaktimeTimesheets",
+      KeyConditionExpression: "UserID = :s",
+      ExpressionAttributeValues: {
+        ":s": { S: `${uuids[x]}` },
+      },
+      ExpressionAttributeNames: {
+        "#S": "Status"
+      },
+      ProjectionExpression: "UserID, TimesheetID, CompanyID, ScheduleData, StartDate, #S, WeekNotes"
+    });
+
+    // get the items from DynamoDB with our query
+    const dynamoRawResult = await client.send(command);
+
+    if (dynamoRawResult == null || dynamoRawResult.Items == null) {
+      throw new Error("Invalid response from DynamoDB, got undefined/null");
     }
+  
+    // Convert Dynamo items to JS objects
+    const unmarshalledItems = dynamoRawResult.Items.map((i) => unmarshall(i));
+  
+    // Parse the items into our expected Company schema.
+    const timesheetData = unmarshalledItems.map((i) => TimeSheetSchema.parse(i));
+
+    const uuidSet = new Set(uuids)
+
+    const modifiedTimesheetData = timesheetData.filter((sheet) => {return uuidSet.has(sheet.UserID) && sheet.StartDate >= StartDate && sheet.StartDate < EndDate})
+
+    const uuidToTimesheet = {"uuid": uuids[x], timesheet: modifiedTimesheetData}
+    
+    result.push(uuidToTimesheet);
+  };
+  return result
+}
+
+export async function filterUUIDsInCompanies(uuids: string[], companies: string[]) {
+  // check if given uuids exist in given companies and return valid uuids
+}
+
+
+  /*const command = new QueryCommand({
+    TableName: "BreaktimeTimesheets",
+    IndexName: "StartDate-index",
+    KeyConditionExpression: "StartDate = :unix",
+    ExpressionAttributeValues: {
+      ":unix": { N: StartDate.toString() },
+    },
   });
 
-  // get the items from DynamoDB with our query
   const dynamoRawResult = await client.send(command);
-  
-  return dynamoRawResult;
-}
+
+  if (dynamoRawResult == null || dynamoRawResult.Items == null) {
+    throw new Error("Invalid response from DynamoDB, got undefined/null");
+  }
+
+  // Convert Dynamo items to JS objects
+  const unmarshalledItems = dynamoRawResult.Items.map((i) => unmarshall(i));
+
+  const timesheetData = unmarshalledItems.map((i) => TimeSheetSchema.parse(i));
+
+  const uuidSet = new Set(uuids)
+
+  const modifiedTimesheetData = timesheetData.filter((item) => {return uuidSet.has(item.UserID) && item.StartDate < EndDate});
+  // probably possible to do with dynamo but no difference in efficiency
+  const uuidToTimesheet = uuids.map((uuid, index) => {return {"uuid": uuid, "timesheet": modifiedTimesheetData[index]}});
+  console.log(timesheetData)
+  return uuidToTimesheet*/

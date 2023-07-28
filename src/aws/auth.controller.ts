@@ -54,16 +54,16 @@ export class AuthController {
   }
 
   @Get("getTimesheet")
-  @Roles("breaktime-admin", "breaktime-supervisor")
+  //@Roles('breaktime-management-role')
+  //@Roles("breaktime-admin", "breaktime-supervisor")
   // supervisor/admin get the same data, just check that supervisor has access to data admin is free for all
   public async get_timesheets(
     @Headers() header: any,
     @Query("userIds") userIds: string[]
-  ): Promise<any> {
+  ): Promise<uuidToTimesheetMapping[]> {
     // if supervisors dont have access to a uuid throw an error
     // if supervisor or admin request non existent uuid throw an error
-    const res = await getTimesheetsForUsersInGivenTimeFrame
-    console.log(res);
+    await getTimesheetsForUsersInGivenTimeFrame(['77566d69-3b61-452a-afe8-73dcda96f876']);
     return [];
   }
 }

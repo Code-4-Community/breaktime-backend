@@ -7,7 +7,9 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall, marshall } from "@aws-sdk/util-dynamodb";
 import * as dotenv from "dotenv";
+import moment from "moment";
 
+import { timesheetToUpload } from "./utils";
 import {TimeSheetSchema} from './db/schemas/Timesheet'
 import { CompanySchema, UserCompaniesSchema } from './db/schemas/CompanyUsers';
 
@@ -160,8 +162,11 @@ export async function WriteEntryToTable(table:TimeSheetSchema): Promise<Boolean>
   });
   return true;
 }
-
+// EndDate should be start date plus one week
 export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], StartDate:number = 1, EndDate:number = StartDate + 100000000000000000000) {
+
+  // TODO: fix dates with moment
+  // TODO: create empty timesheets if timesheets dont exist for a week
 
   if (StartDate > EndDate) {
     throw new Error("Invalid EndDate")
@@ -169,12 +174,12 @@ export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], Sta
 
   let result = []
 
-  for (let x in uuids) {
+  for (let uuid of uuids) {
     const command = new QueryCommand({
       TableName: "BreaktimeTimesheets",
       KeyConditionExpression: "UserID = :s",
       ExpressionAttributeValues: {
-        ":s": { S: `${uuids[x]}` },
+        ":s": { S: `${uuid}` },
       },
       ExpressionAttributeNames: {
         "#S": "Status"
@@ -188,7 +193,7 @@ export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], Sta
     if (dynamoRawResult == null || dynamoRawResult.Items == null) {
       throw new Error("Invalid response from DynamoDB, got undefined/null");
     }
-  
+
     // Convert Dynamo items to JS objects
     const unmarshalledItems = dynamoRawResult.Items.map((i) => unmarshall(i));
   
@@ -197,9 +202,32 @@ export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], Sta
 
     const uuidSet = new Set(uuids)
 
-    const modifiedTimesheetData = timesheetData.filter((sheet) => {return uuidSet.has(sheet.UserID) && sheet.StartDate >= StartDate && sheet.StartDate < EndDate})
 
-    const uuidToTimesheet = {"uuid": uuids[x], timesheet: modifiedTimesheetData}
+    // TODO: have to check here the timesheets for all weeks exist then and create empty if not
+    let modifiedTimesheetData = timesheetData.filter((sheet) => {return uuidSet.has(sheet.UserID) && sheet.StartDate >= StartDate && sheet.StartDate < EndDate})
+
+    let existingWeeks = new Set()
+
+    for (const sheet of modifiedTimesheetData) {
+      existingWeeks.add(sheet.StartDate) // make it sunday 00:00:00
+    }
+
+    for (const m = moment(StartDate); m.isBefore(EndDate); m.add(1, 'week')) {
+      if (!(m.unix() in existingWeeks)) {
+        const newSheet = timesheetToUpload(uuid, "Company 55");
+        WriteEntryToTable(newSheet);
+        // add to modifiedTimesheetData
+        modifiedTimesheetData.push(newSheet);
+      }
+      
+    }
+    // go through modified timesheets
+    // make a dict of what weeks it has
+    // go through start to end and check that it has all weeks
+
+    // modifiedTimesheetData not sorted by date but can be sorted
+
+    const uuidToTimesheet = {"uuid": uuid, timesheet: modifiedTimesheetData}
     
     result.push(uuidToTimesheet);
   };
@@ -209,32 +237,3 @@ export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], Sta
 export async function filterUUIDsInCompanies(uuids: string[], companies: string[]) {
   // check if given uuids exist in given companies and return valid uuids
 }
-
-
-  /*const command = new QueryCommand({
-    TableName: "BreaktimeTimesheets",
-    IndexName: "StartDate-index",
-    KeyConditionExpression: "StartDate = :unix",
-    ExpressionAttributeValues: {
-      ":unix": { N: StartDate.toString() },
-    },
-  });
-
-  const dynamoRawResult = await client.send(command);
-
-  if (dynamoRawResult == null || dynamoRawResult.Items == null) {
-    throw new Error("Invalid response from DynamoDB, got undefined/null");
-  }
-
-  // Convert Dynamo items to JS objects
-  const unmarshalledItems = dynamoRawResult.Items.map((i) => unmarshall(i));
-
-  const timesheetData = unmarshalledItems.map((i) => TimeSheetSchema.parse(i));
-
-  const uuidSet = new Set(uuids)
-
-  const modifiedTimesheetData = timesheetData.filter((item) => {return uuidSet.has(item.UserID) && item.StartDate < EndDate});
-  // probably possible to do with dynamo but no difference in efficiency
-  const uuidToTimesheet = uuids.map((uuid, index) => {return {"uuid": uuid, "timesheet": modifiedTimesheetData[index]}});
-  console.log(timesheetData)
-  return uuidToTimesheet*/

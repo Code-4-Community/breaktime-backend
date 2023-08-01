@@ -63,7 +63,13 @@ export class AuthController {
   ): Promise<uuidToTimesheetMapping[]> {
     // if supervisors dont have access to a uuid throw an error
     // if supervisor or admin request non existent uuid throw an error
+    
+    // TODO: filter uuids before getting
+    // if associate only return their timesheet
+    // if supervisor ensure all uuids are in company
+    // if admin just make sure theyre all valid 
     await getTimesheetsForUsersInGivenTimeFrame(['77566d69-3b61-452a-afe8-73dcda96f876']);
+    
     return [];
   }
 }

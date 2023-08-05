@@ -41,15 +41,16 @@ export class AuthController {
   }
   @Get("timesheet")
   //@Roles('breaktime-management-role')
-  
-  public async grab_timesheets(@Headers() headers: any): Promise<frontendTimesheetSchemas.TimeSheetSchema[]> {
+  public async grab_timesheets(@Headers() headers: any, @Query('uuid') uuid?: string): Promise<frontendTimesheetSchemas.TimeSheetSchema[]> {
     const userId = await TokenClient.grabUserID(headers); 
 
-    if (userId) {
+    if (uuid) {
+      console.log("Fetching timesheets for user ", uuid); 
+      return Formatter.fetchUserTimesheets(uuid); 
+    } else {
       console.log("Fetching timesheets for user ", userId); 
-      return Formatter.fetchUserTimesheets(userId); 
-     
-    } 
+      return Formatter.fetchUserTimesheets(userId);
+    }
     return []; 
   }
 

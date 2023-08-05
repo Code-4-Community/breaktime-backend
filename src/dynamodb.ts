@@ -163,11 +163,10 @@ export async function WriteEntryToTable(table:TimeSheetSchema): Promise<Boolean>
   return true;
 }
 // EndDate should be start date plus one week
-export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], StartDate:number = 1, EndDate:number = StartDate + 100000000000000000000) {
+export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], StartDate = 1, EndDate = StartDate + 1) {
 
   // TODO: fix dates with moment
   // TODO: create empty timesheets if timesheets dont exist for a week
-
   if (StartDate > EndDate) {
     throw new Error("Invalid EndDate")
   }
@@ -204,30 +203,31 @@ export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], Sta
 
 
     // TODO: have to check here the timesheets for all weeks exist then and create empty if not
-    let modifiedTimesheetData = timesheetData.filter((sheet) => {return uuidSet.has(sheet.UserID) && sheet.StartDate >= StartDate && sheet.StartDate < EndDate})
-
+    let modifiedTimesheetData = timesheetData.filter((sheet) => {return uuidSet.has(sheet.UserID) && sheet.StartDate >= StartDate && sheet.StartDate < EndDate })
+    
     let existingWeeks = new Set()
 
     for (const sheet of modifiedTimesheetData) {
+      console.log(sheet)
       existingWeeks.add(sheet.StartDate) // make it sunday 00:00:00
     }
 
-    for (const m = moment(StartDate); m.isBefore(EndDate); m.add(1, 'week')) {
+    /*for (const m = moment(StartDate); m.isBefore(EndDate); m.add(1, 'week')) {
       if (!(m.unix() in existingWeeks)) {
         const newSheet = timesheetToUpload(uuid, "Company 55");
-        WriteEntryToTable(newSheet);
+        //WriteEntryToTable(newSheet);
         // add to modifiedTimesheetData
-        modifiedTimesheetData.push(newSheet);
+        //modifiedTimesheetData.push(newSheet);
       }
       
-    }
+    }*/
     // go through modified timesheets
     // make a dict of what weeks it has
     // go through start to end and check that it has all weeks
 
     // modifiedTimesheetData not sorted by date but can be sorted
 
-    const uuidToTimesheet = {"uuid": uuid, timesheet: modifiedTimesheetData}
+    const uuidToTimesheet = {"uuid": uuid, "timesheet": modifiedTimesheetData}
     
     result.push(uuidToTimesheet);
   };

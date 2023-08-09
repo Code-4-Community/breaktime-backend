@@ -7,7 +7,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall, marshall } from "@aws-sdk/util-dynamodb";
 import * as dotenv from "dotenv";
-import moment from "moment";
+import moment = require("moment");
 
 import { timesheetToUpload } from "./utils";
 import {TimeSheetSchema} from './db/schemas/Timesheet'
@@ -163,10 +163,7 @@ export async function WriteEntryToTable(table:TimeSheetSchema): Promise<Boolean>
   return true;
 }
 // EndDate should be start date plus one week
-export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], StartDate:number = 1, EndDate:number = StartDate + 100000000000000000000) {
-
-  // TODO: fix dates with moment
-  // TODO: create empty timesheets if timesheets dont exist for a week
+export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], StartDate:number = moment().startOf('week').subtract(1, 'week').unix() , EndDate:number = moment().endOf('week').unix()): Promise<any> {
 
   if (StartDate > EndDate) {
     throw new Error("Invalid EndDate")
@@ -209,20 +206,24 @@ export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], Sta
     let existingWeeks = new Set()
 
     for (const sheet of modifiedTimesheetData) {
-      existingWeeks.add(sheet.StartDate) // make it sunday 00:00:00
+    // maybe move to utils and can in theory have locale based issues so configure moment project wide
+      const beginningOfWeekDate = moment.unix(sheet.StartDate).set('second', 0).set('minute', 0).set('hour', 0).set('millisecond', 0).startOf('week').unix()
+      existingWeeks.add(beginningOfWeekDate) // make it sunday 00:00:00
     }
 
-    for (const m = moment(StartDate); m.isBefore(EndDate); m.add(1, 'week')) {
+    console.log(existingWeeks, StartDate)
+    for (const m = moment.unix(StartDate); m.isBefore(moment.unix(EndDate)); m.add(1, 'week')) {
       if (!(m.unix() in existingWeeks)) {
-        const newSheet = timesheetToUpload(uuid, "Company 55");
+        const newSheet = timesheetToUpload(uuid, "Company 55"); // TODO: should loop through companies user was active in and do it like that
         WriteEntryToTable(newSheet);
         // add to modifiedTimesheetData
         modifiedTimesheetData.push(newSheet);
       }
       
     }
+  
     // go through modified timesheets
-    // make a dict of what weeks it has
+    // make a set of what weeks it has
     // go through start to end and check that it has all weeks
 
     // modifiedTimesheetData not sorted by date but can be sorted
@@ -231,9 +232,16 @@ export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], Sta
     
     result.push(uuidToTimesheet);
   };
+
   return result
 }
 
-export async function filterUUIDsInCompanies(uuids: string[], companies: string[]) {
-  // check if given uuids exist in given companies and return valid uuids
+export async function doUUIDSExistInCompanies(uuids: string[], companies: string[]): Promise<Boolean> {
+  // check if given uuids exist in given companies
+  return true
+}
+
+export async function areUUIDsValid(uuids: string[]): Promise<Boolean> {
+  // check if uuids are valid
+  return true
 }

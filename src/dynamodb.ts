@@ -237,8 +237,28 @@ export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], Sta
 }
 
 export async function doUUIDSExistInCompanies(uuids: string[], companies: string[]): Promise<Boolean> {
-  // check if given uuids exist in given companies
-  return true
+  
+  const dynamoCompanyKey = companies.map((company) => {return {CompanyID: { S: company}}})
+
+  const command = new BatchGetItemCommand({
+    RequestItems: {
+      BreaktimeCompanyToUsers : {
+        Keys : dynamoCompanyKey,
+        ProjectionExpression : "AssociateIDs"
+      }
+    }
+  });
+
+  const dynamoRawResult = await client.send(command);
+
+  if (dynamoRawResult == null || dynamoRawResult.Responses == null) {
+    throw new Error("Invalid response from DynamoDB, got undefined/null");
+  }
+
+  const results = dynamoRawResult.Responses.BreaktimeCompanyToUsers.map((i) => unmarshall(i))[0].AssociateIDs;
+
+  // so check results are same as uuids
+  return results.sort().toString() === uuids.sort().toString();
 }
 
 export async function areUUIDsValid(uuids: string[]): Promise<Boolean> {

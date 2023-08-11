@@ -238,12 +238,12 @@ export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], Sta
 
 export async function doUUIDSExistInCompanies(uuids: string[], companies: string[]): Promise<Boolean> {
   
-  const dynamoCompanyKey = companies.map((company) => {return {CompanyID: { S: company}}})
+  const dynamoKeys = companies.map((company) => {return {CompanyID: { S: company}}})
 
   const command = new BatchGetItemCommand({
     RequestItems: {
       BreaktimeCompanyToUsers : {
-        Keys : dynamoCompanyKey,
+        Keys : dynamoKeys,
         ProjectionExpression : "AssociateIDs"
       }
     }
@@ -262,6 +262,25 @@ export async function doUUIDSExistInCompanies(uuids: string[], companies: string
 }
 
 export async function areUUIDsValid(uuids: string[]): Promise<Boolean> {
-  // check if uuids are valid
-  return true
+
+  const dynamoKeys = uuids.map((uuid) => {return {UserID: { S: uuid}}})
+  
+  const command = new BatchGetItemCommand({
+    RequestItems: {
+      BreaktimeUserToCompanies : {
+        Keys : dynamoKeys,
+        ProjectionExpression : "UserID"
+      }
+    }
+  });
+
+  const dynamoRawResult = await client.send(command);
+
+  if (dynamoRawResult == null || dynamoRawResult.Responses == null) {
+    throw new Error("Invalid response from DynamoDB, got undefined/null");
+  }
+
+  const results = dynamoRawResult.Responses.BreaktimeUserToCompanies;
+
+  return results.length === uuids.length;
 }

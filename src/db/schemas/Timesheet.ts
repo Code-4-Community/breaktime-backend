@@ -40,7 +40,8 @@ export const TimeEntrySchema = z.object({
     @PTO - Cell signifying paid time off (PTO) 
 */
 export enum CellType {
-  REGULAR = "Regular", 
+  REGULAR_LEGACY = "Regular", // No longer using this format for data, but some older timesheet entries may have the 'legacy' type
+  REGULAR = "Time Worked",
   PTO = "PTO"
 }
 
@@ -48,7 +49,7 @@ export enum CellType {
  * Represents the database schema for a single shift or entry in the weekly timesheet. 
  */
 export const TimesheetEntrySchema = z.object({
-  Type: z.enum([CellType.REGULAR, CellType.PTO]),
+  Type: z.enum([CellType.REGULAR, CellType.REGULAR_LEGACY, CellType.PTO]).transform((cellType) => cellType === CellType.REGULAR_LEGACY ? CellType.REGULAR : cellType),
   EntryID: z.string(), 
   Date: z.number(), 
   AssociateTimes: TimeEntrySchema.optional(),

@@ -18,7 +18,6 @@ export const StatusEntryType = z.union(
 export const StatusType = z.object({
   HoursSubmitted: StatusEntryType, 
   HoursReviewed: StatusEntryType,
-  ScheduleSubmitted: StatusEntryType, 
   Finalized: StatusEntryType 
 });
 export type StatusType = z.infer<typeof StatusType> 

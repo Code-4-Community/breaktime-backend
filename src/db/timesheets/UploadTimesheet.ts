@@ -30,7 +30,7 @@ export class UploadTimesheet {
             //TODO - Mutate the respective fields to what they should be 
             switch (request.Operation) {
                 case TimesheetOperations.STATUS_CHANGE:
-                    //TODO - Create the functionality for actually incrementing state - 
+                    //TODO - Create the functionality for actually incrementing state : This should handle the StatusCompliation object
                     break; 
                 case TimesheetOperations.DELETE: 
                     modifiedTimesheet =  this.delegator.AttributeToModify(request.Payload).Delete(selectedTimesheet[0], request.Payload); 

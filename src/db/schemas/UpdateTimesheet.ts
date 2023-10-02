@@ -82,6 +82,7 @@ export const StatusChangeRequest = z.object({
     TimesheetId: z.string(),
     AssociateId: z.string()
 })
+export type StatusChangeRequest = z.infer<typeof StatusChangeRequest>
 
 /* The main request body that is used to determine what we should be updating in a request 
     @TimesheetID: The id of the timesheet we are updating 

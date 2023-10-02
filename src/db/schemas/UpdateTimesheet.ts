@@ -79,7 +79,7 @@ export type UpdateRequest = z.infer<typeof UpdateRequest>
         @AssociateId: The id of the associate whose timesheet is being submitted
 */
 export const StatusChangeRequest = z.object({
-    TimesheetId: z.string(),
+    TimesheetId: z.number(),
     AssociateId: z.string()
 })
 export type StatusChangeRequest = z.infer<typeof StatusChangeRequest>

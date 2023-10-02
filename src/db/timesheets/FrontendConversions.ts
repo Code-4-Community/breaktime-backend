@@ -30,7 +30,6 @@ export class DBToFrontend {
         return frontendTimesheetTypes.StatusType.parse({
             HoursSubmitted: status.HoursSubmitted, 
             HoursReviewed: status.HoursReviewed, 
-            ScheduleSubmitted: status.ScheduleSubmitted, 
             Finalized: status.Finalized
         })
     } 

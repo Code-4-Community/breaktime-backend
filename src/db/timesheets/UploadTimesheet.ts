@@ -4,7 +4,7 @@ import { TimesheetUpdateRequest, TimesheetOperations } from "../schemas/UpdateTi
 
 import {UserTimesheets} from "src/dynamodb"
 import { ExceptionsHandler } from "@nestjs/core/exceptions/exceptions-handler";
-import { ItemsDelegator } from "./ItemsOperations";
+import { HoursDataOperations, ItemsDelegator } from "./ItemsOperations";
 
 import {WriteEntryToTable} from "src/dynamodb"
 import {frontendEntryConversions} from './EntryOperations'
@@ -27,10 +27,10 @@ export class UploadTimesheet {
         if (selectedTimesheet.length == 1) {
             
             var modifiedTimesheet = undefined; 
-            //TODO - Mutate the respective fields to what they should be 
             switch (request.Operation) {
                 case TimesheetOperations.STATUS_CHANGE:
-                    //TODO - Create the functionality for actually incrementing state : This should handle the StatusCompliation object
+                    // This operation should only be supported for Hours Data
+                    modifiedTimesheet = this.delegator.tableData.StatusChange(selectedTimesheet[0], request.Payload);
                     break; 
                 case TimesheetOperations.DELETE: 
                     modifiedTimesheet =  this.delegator.AttributeToModify(request.Payload).Delete(selectedTimesheet[0], request.Payload); 
@@ -50,7 +50,7 @@ export class UploadTimesheet {
                     throw new Error(`Invalid operation: ${request.Operation}`); 
             }
             if (modifiedTimesheet !== undefined) {
-                WriteEntryToTable(modifiedTimesheet); 
+                WriteEntryToTable(modifiedTimesheet);
                 return "Success :)"
             }
             return "Failure"; 

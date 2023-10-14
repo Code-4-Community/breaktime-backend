@@ -42,7 +42,6 @@ export const StatusSchema = z.object({
   StatusType: z.enum([
     "HoursSubmitted",
     "HoursReviewed",
-    "ScheduleSubmitted",
     "Finalized",
   ]),
   SubmittedDateTime: z.number(),
@@ -65,7 +64,7 @@ export const TimeSheetSchema = z.object({
   TimesheetID: z.number(),
   UserID: z.string().uuid(),
   StartDate: z.number(),
-  StatusList: z.array(StatusSchema),
+  StatusList: z.array(StatusSchema), // TODO: This is no longer correct schema for the database. This should be it's own object
   CompanyID: z.string(),
   HoursData: z.array(TimesheetEntrySchema).default([]),
   ScheduleData: z.array(ScheduleEntrySchema).default([]),
@@ -73,3 +72,9 @@ export const TimeSheetSchema = z.object({
 });
 
 export type TimeSheetSchema = z.infer<typeof TimeSheetSchema>;
+
+export enum TimesheetStatus {
+  HOURS_SUBMITTED="HoursSubmitted",
+  HOURS_REVIEWED="HoursReviewed",
+  FINALIZED="Finalized"
+}

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { RowSchema, CommentSchema, ScheduledRowSchema } from "../frontend/RowSchema";
 import * as dbTypes from '../schemas/Timesheet'
+import { TimesheetStatus } from "../Timesheet";
 
 /*
     The supported timesheet operations currently supported. 
@@ -80,7 +81,10 @@ export type UpdateRequest = z.infer<typeof UpdateRequest>
 */
 export const StatusChangeRequest = z.object({
     TimesheetId: z.number(),
-    AssociateId: z.string()
+    AssociateId: z.string(),
+    authorId: z.number(),
+    dateSubmitted: z.number(),
+    statusType: z.enum([TimesheetStatus.FINALIZED, TimesheetStatus.HOURS_REVIEWED, TimesheetStatus.HOURS_SUBMITTED])
 })
 export type StatusChangeRequest = z.infer<typeof StatusChangeRequest>
 

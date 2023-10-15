@@ -10,6 +10,7 @@ export type UserModel = {
   userEmail: string;
   associateCompanyIds?: string[];
   supervisorCompanyIds?: string[];
+  userRole: string;
 };
 
 // alt

@@ -23,11 +23,12 @@ export class UserService {
     companyIds: string[],
     searchRoles: string[],
     userIds: string[]
-  ): Promise<CompanyUsers[]> {
+  ): Promise<UserSearchResult> {
     // Determine what primary role should be used when searching, i.e. what permissions should take precedence
     let companyUserList: CompanyUsers[];
     if (user.groups.includes(CognitoRoles.ADMIN)) {
-      // TODO: return this.getUsersForAdmin();
+      throw new Error("Not Implemented")
+      //return this.getUsersForAdmin();
     } else if (user.groups.includes(CognitoRoles.SUPERVISOR)) {
       companyUserList = await this.getUsersForSupervisor(
         user,
@@ -47,7 +48,8 @@ export class UserService {
         HttpStatus.UNAUTHORIZED
       );
     }
-    return companyUserList;
+    //return companyUserList;
+    throw new Error("Not Implemented")
   }
 
   // TODO: this will need to do mapping to company data
@@ -55,6 +57,14 @@ export class UserService {
     return this.getAllUsers();
   }
 
+    /**
+   * Gets all the relevant users for a given Associate
+   * @param user : The Associate who is requesting user information
+   * @param companyIds : (optional) List of company IDs to restrict the search to. If empty, search all supervisor companies
+   * @param searchRoles : (optional) List of roles (associate, supervisor, admin) to restrict the search to. 
+   * @param userIds : (optional) List of user IDs to restrict the search to.
+   * @returns 
+   */
   async getUsersForAssociate(
     user: ValidatedUser,
     companyIds: string[],
@@ -81,6 +91,14 @@ export class UserService {
     return companyUserList;
   }
 
+  /**
+   * Gets all the relevant users for a given Supervisor
+   * @param user : The Supervisor who is requesting user information
+   * @param companyIds : (optional) List of company IDs to restrict the search to. If empty, search all supervisor companies
+   * @param searchRoles : (optional) List of roles (associate, supervisor, admin) to restrict the search to. 
+   * @param userIds : (optional) List of user IDs to restrict the search to.
+   * @returns 
+   */
   async getUsersForSupervisor(
     user: ValidatedUser,
     companyIds: string[],
@@ -93,7 +111,6 @@ export class UserService {
       companyIds = (await GetCompaniesForUser(user.sub)).SupervisorCompanyIDs;
     }
     // Schema for return object:
-
     /*
     {
     Admins: ["userId1', "userId2"...],
@@ -102,6 +119,8 @@ export class UserService {
     [ {userId: userObject} ]
     }
     */
+
+    // Get all the user ids that are in the supervisor's companies
     const companyUserList: CompanyUsers[] = [];
     for (const companyId of companyIds) {
       const companyUserData = await this.getCompanyUserData(
@@ -119,27 +138,15 @@ export class UserService {
   async getUsersByIds(
     requester: ValidatedUser,
     userIds: string[]
-  ): Promise<[UserModel[], CompanyUserIds[]]> {
+  ): Promise<UserModel[]> {
+    // TODO: verification that requester can get all requested user information
     // get all cognito data for users
     const cognitoUsers = await this.getCognitoUsersByIds(userIds);
     console.log(cognitoUsers);
 
-    const companies: Map<string, CompanyUserIds> = [];
-
-    // validate that the requested user is either an admin, or that all userids are in their company/are admins
-    // TODO
-
-    // get the company data for all users, and merge it into the existing cognito data
-    for (const user of cognitoUsers) {
-      await this.updateUserWithCompanyData(user);
-
-      for (const associateCompanyId of user.associateCompanyIds) {
-
-      }
-
-      for (const associateCompanyId of user.associateCompanyIds) {
-      }
-    }
+    // Include company information for each user
+    const usersWithCompanies = cognitoUsers.map(this.updateUserWithCompanyData)
+    console.log(usersWithCompanies)
 
     return cognitoUsers;
   }
@@ -216,6 +223,8 @@ export class UserService {
   ): Promise<CompanyUsers> {
     // This will be db call with companyIds as a filter on the query
     // This only gets the UserIDs, NOT all the user info
+    // In the database, that's how our data is generally stored: CompanyIds to UserIds in one table, and then user data
+    // in a different table/in Cognito
     const companyData = await GetCompanyData(companyId);
 
     let associateData = [];
@@ -233,6 +242,7 @@ export class UserService {
       );
       companyUserData.Supervisors = supervisorData;
     }
+
     return companyUserData;
   }
 
@@ -297,7 +307,8 @@ export class UserService {
 /*
 {
 Admins: ["userId1', "userId2"...],
-CompanyUserData: [CompanyId: { Associates: [ "userId3, "userId1"], Supervisors: ["userId4"] }, ... ]
+CompanyUserData: List of CompanyUsers
+    e.g. [CompanyId: { Associates: [ "userId3, "userId1"], Supervisors: ["userId4"] }, ... ]
 Users:
 [ {userId: userObject} ]
 }

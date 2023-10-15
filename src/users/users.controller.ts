@@ -24,7 +24,7 @@ import { CognitoRoles } from "src/aws/cognito/Roles";
 export class UsersController {
   constructor(private userService: UserService) {}
 
-  // TODO : For now, this primarily just works for supervisors, rather than admins. Some additional checks will need to be added for full admin support
+  // TODO: Ultimately, this should likely be reworked into a separate 'company' endpoint
   /**
    * Gets all the user data from a certain company/companies and returns and array. If no company ID is given,
    * we'll default to use the companies that the requesting user belongs to as the filter. If the user is an admin, return all users
@@ -35,8 +35,8 @@ export class UsersController {
    * @throws 401 UNAUTHORIZED if the companyID requested is not one that the user has access to
    * @returns an array of Company objects that contain the companyID and associated User data
    */
-  @Get("users")
-  public async getUsers(
+  @Get("usersCompanies")
+  public async getUsersAndCompanies(
     @Headers() headers: any,
     @User() user: ValidatedUser,
     @Query("companyIds") companyIds?: string[],
@@ -50,7 +50,41 @@ export class UsersController {
       );
     }
 
-    return this.userService.getUsers(user, companyIds ?? [], roles, userIds);
+    //return this.userService.getUsers(user, companyIds ?? [], roles, userIds);
+    throw new Error("Not implemented.")
+  }  
+
+  @Get("userById")
+  public async getUserById(
+    @Headers() headers: any,
+    @User() requester: ValidatedUser,
+    @Query("userIds") userIds: string[] = []
+  ): Promise<UserModel> {
+    if (!requester.sub) {
+      throw new HttpException(
+        "No authorized user found",
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+    
+    // TODO: Throw error if no users found
+    return this.userService.getUsersByIds(requester, userIds)[0];
+  }
+
+  @Roles("breaktime-admin")
+  @Get("allUsers")
+  public async getAllUsers(
+    @Headers() headers: any,
+    @User() requester: ValidatedUser
+  ): Promise<UserModel[]> {
+    if (!requester.sub) {
+      throw new HttpException(
+        "No authorized user found",
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+
+    return this.userService.getAllUsers()
   }
 
   @Get("usersById")

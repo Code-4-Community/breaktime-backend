@@ -13,5 +13,5 @@ export const mockSupervisor: User = {
   given_name: "Test",
   family_name: "Admin",
   phone_number: "+11234567890",
-  "cognito:groups": ["breaktime-supervisor"],
+  "cognito:groups": ["breaktime-supervisor", "breaktime-associate"],
 };

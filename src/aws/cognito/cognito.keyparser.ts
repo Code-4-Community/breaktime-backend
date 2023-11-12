@@ -12,9 +12,10 @@ export class JWTVerifier {
   public async grabUserID(headers: any): Promise<string> {
     if (process.env.ENV_TYPE && process.env.ENV_TYPE === "test") {
       console.log(
-        "Testing environment - mock user sub will be used with token client"
+        "Testing environment - mock user sub will be used with token client: ",
+        process.env.MOCK_USER_SUB
       );
-      return mockSupervisor.sub;
+      return process.env.MOCK_USER_SUB;
     }
 
     if (headers.hasOwnProperty("authorization")) {

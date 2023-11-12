@@ -136,6 +136,9 @@ export class HoursDataOperations implements ItemsOperations {
             ...timesheet.Status,
             [body.statusType.valueOf()]: newStatusEntry
         }
+
+        console.log("Handling Status Change Request for timesheet %s", body.TimesheetId.valueOf())
+        console.log("New Status Object:\n %s", updatedStatus)
         return {
             ...timesheet, 
             Status: updatedStatus

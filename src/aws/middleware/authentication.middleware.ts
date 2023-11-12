@@ -16,6 +16,7 @@ export class AuthenticationMiddleware implements NestMiddleware {
       req.user = {
         isValidated: true,
         groups: mockSupervisor["cognito:groups"],
+        sub: mockSupervisor.sub
       };
       return next();
     }

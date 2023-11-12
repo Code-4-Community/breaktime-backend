@@ -65,11 +65,9 @@ export class CognitoWrapper {
           parsedUser.Attributes.push({Name: "cognito:groups", Value: role});
           return parsedUser;
         })
-        console.log("MODIFIED USERS FOR %s", role)
         userData = [...userData, ...modifiedUsers]
       }
 
-      console.log(userData);
       return userData;
     } catch (error) {
       console.log(error);

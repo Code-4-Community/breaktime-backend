@@ -67,6 +67,8 @@ export class CognitoWrapper {
         throw new Error("Issue with retrieving user data from user pool.");
       }
 
+      userData.forEach((user) => console.log(user.Attributes))
+
       return userData
         .filter((user) =>
           userIDs.includes(

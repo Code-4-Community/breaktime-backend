@@ -292,7 +292,9 @@ export class UserService {
     var lastName = user.Attributes.find(
       (attribute) => attribute.Name === "family_name"
     );
-
+    var group = user.Attributes.find(
+      (attribute) => attribute.Name === "cognito:groups"
+    )
     // TODO : refactor into separate 'getAttribute' function so we don't repeat this code
 
     return {
@@ -300,6 +302,7 @@ export class UserService {
       lastName: lastName != null ? lastName.Value : "",
       userEmail: email != null ? email.Value : "",
       userID: sub.Value,
+      userRole: group != null ? group.Value : "",
     };
   }
 }

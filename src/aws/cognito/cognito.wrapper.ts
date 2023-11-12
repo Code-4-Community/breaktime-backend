@@ -3,9 +3,11 @@ import { CognitoJwtVerifier } from "aws-jwt-verify";
 import {
   ListUsersCommand,
   CognitoIdentityProviderClient,
+  ListUsersInGroupCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import * as dotenv from "dotenv";
 import { CognitoUser } from "./User.client";
+import { CognitoRoles } from "./Roles";
 
 // incase things break https://github.com/awslabs/aws-jwt-verify
 dotenv.config();
@@ -41,14 +43,34 @@ export class CognitoWrapper {
     // Reference : https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-cognito-identity-provider/
     try {
       // Create list of users to be returned
-      const userData = await this.listUsers(this.userPoolId);
+      // const userData = await this.listUsers(this.userPoolId);
 
-      console.log(userData);
-      if (userData == null) {
-        throw new Error("Issue with retrieving user data from user pool.");
+      // Loop through all roles (aka Cognito groups) to get the user data in that group
+      // A user can only ever be in one group, so there should be no duplicate users
+      var userData = []
+
+      const groups = Object.values(CognitoRoles)
+      for (let role of groups) {
+        console.log(role)
+        console.log("Getting users in group %s", role)
+        const usersInGroup = await this.listUsersInGroup(this.userPoolId, role)
+
+        if (userData == null) {
+          throw new Error("Issue with retrieving user data from user pool for group.");
+        }
+
+        // Parse each user into a CognitoUser object, and set their group attribute
+        const modifiedUsers = usersInGroup.map((user) => { 
+          const parsedUser = CognitoUser.parse(user);
+          parsedUser.Attributes.push({Name: "cognito:groups", Value: role});
+          return parsedUser;
+        })
+        console.log("MODIFIED USERS FOR %s", role)
+        userData = [...userData, ...modifiedUsers]
       }
 
-      return userData.map((user) => CognitoUser.parse(user));
+      console.log(userData);
+      return userData;
     } catch (error) {
       console.log(error);
       return [];
@@ -60,22 +82,15 @@ export class CognitoWrapper {
    */
   async getUsersByIds(userIDs: string[]) {
     try {
-      // Create list of users to be returned
-      const userData = await this.listUsers(this.userPoolId);
-
-      if (userData == null) {
-        throw new Error("Issue with retrieving user data from user pool.");
-      }
-
-      userData.forEach((user) => console.log(user.Attributes))
+      // Get all users first
+      const userData = await this.getUsers();
 
       return userData
         .filter((user) =>
           userIDs.includes(
             user.Attributes.find((attribute) => (attribute.Name = "sub")).Value
           )
-        )
-        .map((user) => CognitoUser.parse(user));
+        );
     } catch (error) {
       console.log(error);
       return [];
@@ -98,6 +113,27 @@ export class CognitoWrapper {
     } catch (error) {
       console.log(
         `Error getting users from Cognito user pool ${userPoolId} and filter ${filter}: ${error}`
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Gets a list of raw user data from a specified Cognito user pool for the given group, with maximum of 'limit' users.
+   * If an error occurs, log the error and return an empty list.
+   */
+  async listUsersInGroup(userPoolId: string, groupName: string, limit?: number) {
+    try {
+      const command = new ListUsersInGroupCommand({
+        UserPoolId: userPoolId,
+        GroupName: groupName,
+        Limit: limit,
+      })
+
+      return this.serviceProvider.send(command).then((data) => data.Users);
+    } catch (error) {
+      console.log(
+        `Error getting users from Cognito user pool ${userPoolId} and group ${groupName}: ${error}`
       );
       return [];
     }

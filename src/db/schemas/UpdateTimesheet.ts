@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { RowSchema, CommentSchema, ScheduledRowSchema } from "../frontend/RowSchema";
 import * as dbTypes from '../schemas/Timesheet'
+import { TimesheetStatus } from "../Timesheet";
 
 /*
     The supported timesheet operations currently supported. 
@@ -31,7 +32,7 @@ export const enum TimesheetOperations {
 */
 export const enum TimesheetListItems {
     TABLEDATA = "TABLEDATA", 
-    SCHEDULEDATA = "SCHEDULEDATA", 
+    SCHEDULEDATA = "SCHEDULEDATA", // TODO : delete this
     WEEKNOTES = "WEEKNOTES"
 }
 
@@ -73,6 +74,19 @@ export const UpdateRequest = z.object({
 })
 export type UpdateRequest = z.infer<typeof UpdateRequest>
 
+/*
+    Schema for changing the status of a timesheet 
+        @TimesheetId: The id of the timesheet we are updating 
+        @AssociateId: The id of the associate whose timesheet is being submitted
+*/
+export const StatusChangeRequest = z.object({
+    TimesheetId: z.number(),
+    AssociateId: z.string(),
+    authorId: z.string(),
+    dateSubmitted: z.number(),
+    statusType: z.enum([TimesheetStatus.FINALIZED, TimesheetStatus.HOURS_REVIEWED, TimesheetStatus.HOURS_SUBMITTED])
+})
+export type StatusChangeRequest = z.infer<typeof StatusChangeRequest>
 
 /* The main request body that is used to determine what we should be updating in a request 
     @TimesheetID: The id of the timesheet we are updating 

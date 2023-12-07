@@ -32,12 +32,15 @@ export class AuthController {
   ): Promise<string> {
     const userId = await TokenClient.grabUserID(headers); 
     if (userId) {
-      console.log("Writing")
+      console.log("Update Timesheet Request: Processing")
+      console.log("Request received:")
+      console.log(body)
       const result = this.uploadApi.updateTimesheet(body, userId); 
-      //Do something with this result? 
-      return "Success"; 
+      //TODO: Do something with this result? 
+      return result; 
     }
   }
+  
   @Get("timesheet")
   //@Roles('breaktime-management-role')
   

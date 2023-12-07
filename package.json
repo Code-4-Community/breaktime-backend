@@ -31,6 +31,10 @@
     "dotenv": "^16.0.3",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
+    "nest": "^0.1.6",
+    "nest.js": "^1.0.8",
+    "nestjs": "^0.0.1",
+    "node.js": "^0.0.1-security",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
     "zod": "^3.21.4"

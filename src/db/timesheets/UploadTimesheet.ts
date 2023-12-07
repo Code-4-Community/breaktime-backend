@@ -4,7 +4,7 @@ import { TimesheetUpdateRequest, TimesheetOperations } from "../schemas/UpdateTi
 
 import {UserTimesheets} from "src/dynamodb"
 import { ExceptionsHandler } from "@nestjs/core/exceptions/exceptions-handler";
-import { ItemsDelegator } from "./ItemsOperations";
+import { HoursDataOperations, ItemsDelegator } from "./ItemsOperations";
 
 import {WriteEntryToTable} from "src/dynamodb"
 import {frontendEntryConversions} from './EntryOperations'
@@ -22,15 +22,16 @@ export class UploadTimesheet {
             userid: The user we are processing this for 
         */
         //Retrieve a specified timesheet 
+        console.log(request)
         const userTimesheets = await UserTimesheets(userid); 
         const selectedTimesheet = userTimesheets.filter((timesheet) => timesheet.TimesheetID === request.TimesheetID)
         if (selectedTimesheet.length == 1) {
-            
+            console.log("Timesheet found for Update Timesheet Operation %s", request.Operation.valueOf())
             var modifiedTimesheet = undefined; 
-            //TODO - Mutate the respective fields to what they should be 
             switch (request.Operation) {
                 case TimesheetOperations.STATUS_CHANGE:
-                    //TODO - Create the functionality for actually incrementing state - 
+                    // This operation should only be supported for Hours Data
+                    modifiedTimesheet = this.delegator.tableData.StatusChange(selectedTimesheet[0], request.Payload);
                     break; 
                 case TimesheetOperations.DELETE: 
                     modifiedTimesheet =  this.delegator.AttributeToModify(request.Payload).Delete(selectedTimesheet[0], request.Payload); 
@@ -50,7 +51,7 @@ export class UploadTimesheet {
                     throw new Error(`Invalid operation: ${request.Operation}`); 
             }
             if (modifiedTimesheet !== undefined) {
-                WriteEntryToTable(modifiedTimesheet); 
+                WriteEntryToTable(modifiedTimesheet);
                 return "Success :)"
             }
             return "Failure"; 

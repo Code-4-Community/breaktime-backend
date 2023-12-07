@@ -14,11 +14,10 @@ export const StatusEntryType = z.union(
   }), 
   z.undefined()]); 
 
-// Status type contains the four stages of the pipeline we have defined 
+// Status type contains the three stages of the pipeline we have defined 
 export const StatusType = z.object({
   HoursSubmitted: StatusEntryType, 
   HoursReviewed: StatusEntryType,
-  ScheduleSubmitted: StatusEntryType, 
   Finalized: StatusEntryType 
 });
 export type StatusType = z.infer<typeof StatusType> 

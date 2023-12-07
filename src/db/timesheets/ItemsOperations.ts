@@ -1,5 +1,5 @@
-import {TimeSheetSchema, TimesheetEntrySchema, ScheduleEntrySchema, NoteSchema} from '../schemas/Timesheet'
-import {UpdateRequest, InsertRequest, DeleteRequest, TimesheetListItems} from '../schemas/UpdateTimesheet'
+import {TimeSheetSchema, TimesheetEntrySchema, ScheduleEntrySchema, NoteSchema, StatusEntryType} from '../schemas/Timesheet'
+import {UpdateRequest, InsertRequest, DeleteRequest, TimesheetListItems, StatusChangeRequest} from '../schemas/UpdateTimesheet'
 import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
 //Not sure why but only works if imported like this :| 
 const moment = require('moment-timezone'); 
@@ -14,6 +14,8 @@ interface ItemsOperations {
     Delete(timesheet: TimeSheetSchema, body:DeleteRequest): TimeSheetSchema 
     // Update a specific item in the list of items 
     Update(timesheet: TimeSheetSchema, body:UpdateRequest) : TimeSheetSchema 
+    // TODO: add a new StatusChange(....) function 
+    StatusChange(timesheet: TimeSheetSchema, body:StatusChangeRequest): TimeSheetSchema
 }
 
 /*
@@ -24,7 +26,8 @@ export class ItemsDelegator {
     // Class to determine what field of the timesheet we are performing item operations on 
     tableData = new HoursDataOperations() 
     scheduleData = new ScheduledDataOperations() 
-    notesData = new NotesOperations() 
+    notesData = new NotesOperations()
+    
 
     public AttributeToModify(body: InsertRequest | DeleteRequest | UpdateRequest) {
         switch (body.Type) {
@@ -33,7 +36,7 @@ export class ItemsDelegator {
             case TimesheetListItems.SCHEDULEDATA:
                 return this.scheduleData; 
             case TimesheetListItems.WEEKNOTES:
-                return this.notesData; 
+                return this.notesData;
             default:
                 throw new Error ("Invalid operation provided"); 
         }
@@ -46,7 +49,7 @@ export class ItemsDelegator {
     i.e. the user entered rows of the time they worked. 
 */
 export class HoursDataOperations implements ItemsOperations {
-    public  Insert(timesheet: TimeSheetSchema, body:InsertRequest)  {
+    public Insert(timesheet: TimeSheetSchema, body:InsertRequest)  {
         const data = timesheet.HoursData; 
 
         const item = TimesheetEntrySchema.parse(body.Item); 
@@ -111,6 +114,34 @@ export class HoursDataOperations implements ItemsOperations {
                 }
                 return row; 
             })
+        }
+    }
+
+    public StatusChange(timesheet: TimeSheetSchema, body:StatusChangeRequest)  {
+        if (timesheet.TimesheetID !== body.TimesheetId) {
+            throw new Error("Requested timesheet does not match timesheet ID of timesheet being updated");
+        }
+
+        /*
+        As an example...
+        original Status : {HoursSubmitted=undefined, HoursReviewed=undefined, Finalized=undefined}
+
+        StatusChangeRequest: {TimesheetId=abc, AssociateId=123456, authorId:123456, dateSubmited=0638457, StatusType='HoursSubmitted'}
+
+        new Status: {HoursSubmitted={Date: 0638457, AuthorID: 123456}, HoursReviewed=undefined, Finalized=undefined}
+        */
+
+        const newStatusEntry = {Date: body.dateSubmitted, AuthorID: body.authorId}
+        const updatedStatus = {
+            ...timesheet.Status,
+            [body.statusType.valueOf()]: newStatusEntry
+        }
+
+        console.log("Handling Status Change Request for timesheet %s", body.TimesheetId.valueOf())
+        console.log("New Status Object:\n %s", updatedStatus)
+        return {
+            ...timesheet, 
+            Status: updatedStatus
         }
     }
 }
@@ -180,6 +211,10 @@ export class ScheduledDataOperations implements ItemsOperations {
             })
         }
     }
+
+    public StatusChange(timesheet: TimeSheetSchema, body:StatusChangeRequest)  {
+        return undefined;
+    }
 }
 
 // Operations on the weekly notes on the timesheet - i.e. comments relating to the entire timesheet / specific day worked. 
@@ -215,6 +250,10 @@ export class NotesOperations implements ItemsOperations {
                 return note ;
             })
         }
+    }
+
+    public StatusChange(timesheet: TimeSheetSchema, body:StatusChangeRequest)  {
+        return undefined;
     }
 }
 

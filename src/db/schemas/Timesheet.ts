@@ -72,7 +72,6 @@ export const StatusEntryType = z.union(
 export const TimesheetStatus = z.object({
   HoursSubmitted: StatusEntryType, 
   HoursReviewed: StatusEntryType,
-  ScheduleSubmitted: StatusEntryType, 
   Finalized: StatusEntryType 
 });
 

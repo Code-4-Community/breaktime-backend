@@ -23,8 +23,10 @@ export class UploadTimesheet {
         */
         //Retrieve a specified timesheet 
         console.log(request)
-        const userTimesheets = await UserTimesheets(userid); 
-        const selectedTimesheet = userTimesheets.filter((timesheet) => timesheet.TimesheetID === request.TimesheetID)
+        const userTimesheets = await UserTimesheets(userid);
+        console.log("all timesheets:  ", userTimesheets)
+        const selectedTimesheet = userTimesheets.filter((timesheet) => timesheet.TimesheetID === request.TimesheetID )
+        console.log("selected timesheets:  ", selectedTimesheet)
         if (selectedTimesheet.length == 1) {
             console.log("Timesheet found for Update Timesheet Operation %s", request.Operation.valueOf())
             var modifiedTimesheet = undefined; 

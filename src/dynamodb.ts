@@ -7,7 +7,9 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall, marshall } from "@aws-sdk/util-dynamodb";
 import * as dotenv from "dotenv";
+import moment = require("moment");
 
+import { timesheetToUpload } from "./utils";
 import {TimeSheetSchema} from './db/schemas/Timesheet'
 import { CompanySchema, UserCompaniesSchema } from './db/schemas/CompanyUsers';
 
@@ -159,4 +161,126 @@ export async function WriteEntryToTable(table:TimeSheetSchema): Promise<Boolean>
     }
   });
   return true;
+}
+// EndDate should be start date plus one week
+export async function getTimesheetsForUsersInGivenTimeFrame(uuids: string[], StartDate:number = moment().startOf('week').subtract(1, 'week').unix() , EndDate:number = moment().endOf('week').unix()): Promise<any> {
+
+  if (StartDate > EndDate) {
+    throw new Error("Invalid EndDate")
+  }
+
+  let result = []
+
+  for (let uuid of uuids) {
+    const command = new QueryCommand({
+      TableName: "BreaktimeTimesheets",
+      KeyConditionExpression: "UserID = :s",
+      ExpressionAttributeValues: {
+        ":s": { S: `${uuid}` },
+      },
+      ExpressionAttributeNames: {
+        "#S": "Status"
+      },
+      ProjectionExpression: "UserID, TimesheetID, CompanyID, ScheduleData, StartDate, #S, WeekNotes"
+    });
+
+    // get the items from DynamoDB with our query
+    const dynamoRawResult = await client.send(command);
+
+    if (dynamoRawResult == null || dynamoRawResult.Items == null) {
+      throw new Error("Invalid response from DynamoDB, got undefined/null");
+    }
+
+    // Convert Dynamo items to JS objects
+    const unmarshalledItems = dynamoRawResult.Items.map((i) => unmarshall(i));
+  
+    // Parse the items into our expected Company schema.
+    const timesheetData = unmarshalledItems.map((i) => TimeSheetSchema.parse(i));
+
+    const uuidSet = new Set(uuids)
+
+
+    // TODO: have to check here the timesheets for all weeks exist then and create empty if not
+    let modifiedTimesheetData = timesheetData.filter((sheet) => {return uuidSet.has(sheet.UserID) && sheet.StartDate >= StartDate && sheet.StartDate < EndDate})
+
+    let existingWeeks = new Set()
+
+    for (const sheet of modifiedTimesheetData) {
+    // maybe move to utils and can in theory have locale based issues so configure moment project wide
+      const beginningOfWeekDate = moment.unix(sheet.StartDate).set('second', 0).set('minute', 0).set('hour', 0).set('millisecond', 0).startOf('week').unix()
+      existingWeeks.add(beginningOfWeekDate) // make it sunday 00:00:00
+    }
+
+    console.log(existingWeeks, StartDate)
+    for (const m = moment.unix(StartDate); m.isBefore(moment.unix(EndDate)); m.add(1, 'week')) {
+      if (!(m.unix() in existingWeeks)) {
+        const newSheet = timesheetToUpload(uuid, "Company 55"); // TODO: should loop through companies user was active in and do it like that
+        WriteEntryToTable(newSheet);
+        // add to modifiedTimesheetData
+        modifiedTimesheetData.push(newSheet);
+      }
+      
+    }
+  
+    // go through modified timesheets
+    // make a set of what weeks it has
+    // go through start to end and check that it has all weeks
+
+    // modifiedTimesheetData not sorted by date but can be sorted
+
+    const uuidToTimesheet = {"uuid": uuid, timesheet: modifiedTimesheetData}
+    
+    result.push(uuidToTimesheet);
+  };
+
+  return result
+}
+
+export async function doUUIDSExistInCompanies(uuids: string[], companies: string[]): Promise<Boolean> {
+  
+  const dynamoKeys = companies.map((company) => {return {CompanyID: { S: company}}})
+
+  const command = new BatchGetItemCommand({
+    RequestItems: {
+      BreaktimeCompanyToUsers : {
+        Keys : dynamoKeys,
+        ProjectionExpression : "AssociateIDs"
+      }
+    }
+  });
+
+  const dynamoRawResult = await client.send(command);
+
+  if (dynamoRawResult == null || dynamoRawResult.Responses == null) {
+    throw new Error("Invalid response from DynamoDB, got undefined/null");
+  }
+
+  const results = dynamoRawResult.Responses.BreaktimeCompanyToUsers.map((i) => unmarshall(i))[0].AssociateIDs;
+
+  // so check results are same as uuids
+  return results.sort().toString() === uuids.sort().toString();
+}
+
+export async function areUUIDsValid(uuids: string[]): Promise<Boolean> {
+
+  const dynamoKeys = uuids.map((uuid) => {return {UserID: { S: uuid}}})
+  
+  const command = new BatchGetItemCommand({
+    RequestItems: {
+      BreaktimeUserToCompanies : {
+        Keys : dynamoKeys,
+        ProjectionExpression : "UserID"
+      }
+    }
+  });
+
+  const dynamoRawResult = await client.send(command);
+
+  if (dynamoRawResult == null || dynamoRawResult.Responses == null) {
+    throw new Error("Invalid response from DynamoDB, got undefined/null");
+  }
+
+  const results = dynamoRawResult.Responses.BreaktimeUserToCompanies;
+
+  return results.length === uuids.length;
 }
